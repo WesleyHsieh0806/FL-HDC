@@ -11,6 +11,7 @@ $ python global_model.py
 Setup the parameters and CIM, IM vectors for federated learning.
 Since the models from all clients should follow these parameters, I call this setting "Base Model".
 After setting the parameters, the directories for each client will be constructed and then the NonIID dataset for each client will be assigned.
+
 ***Output: After running this file, "Setup.pickle" will be made so that each model can follow the information in "Setup.pickle" to setup their models.***
 ## client_training.py:
 After acquiring "Setup.pickle", we should train the model from local dataset of each client based on the setting of "Setup.pickle".
