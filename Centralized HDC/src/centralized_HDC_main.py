@@ -67,11 +67,11 @@ def main():
 
             # Begin training
             start = time.time()
-            MNIST.train(x[:8000], y[:8000])
+            MNIST.train(x[:800], y[:800])
 
             # Retrain
             MNIST.retrain_earlystop(
-                test_x[:4000], test_y[:4000], x[:8000], y[:8000], train_acc_demand=0.7, batch_size=2000)
+                test_x[:400], test_y[:400], x[:800], y[:800], train_acc_demand=0.7, batch_size=2000)
 
             # Record the training time
             train_time = time.time()-start
