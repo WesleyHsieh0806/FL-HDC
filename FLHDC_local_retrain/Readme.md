@@ -4,7 +4,7 @@
 $ cd "./Base Model"
 $ python "./Base_model.py"
 $ cd ..
-$ python client_training.py
+$ python client_retraining.py
 $ python ./Global_model/global_model.py 
 ```
 ## ./Base Model/Base_model.py:

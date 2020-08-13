@@ -10,11 +10,7 @@ $ python ./Global_model/global_model.py
 ## ./Base Model/Base_model.py:
 Setup the parameters and CIM, IM vectors for federated learning.
 Since the models from all clients should follow these parameters, I call this setting "Base Model".
-<<<<<<< HEAD:FLHDC/Readme.md
 After setting the parameters, the directories for each client will be constructed and then the NonIID dataset for each client, IID dataset for global model initialization will be assigned.
-=======
-After setting the parameters, the directories for each client will be constructed and then the NonIID dataset for each client will be assigned.
->>>>>>> 38800028455e0760331258bdad2d5acd4600cd78:FL HDC/Readme.md
 
 ***Output: After running this file, "Setup.pickle" will be made so that each model can follow the information in "Setup.pickle" to setup their models.***
 ## client_training.py:
