@@ -67,20 +67,20 @@ def main():
 
             # Begin training
             start = time.time()
-            MNIST.train(x[:800], y[:800])
+            MNIST.train(x[:], y[:])
 
             # Retrain
             MNIST.retrain_earlystop(
-                test_x[:400], test_y[:400], x[:800], y[:800], train_acc_demand=0.7, batch_size=2000)
+                test_x[:], test_y[:], x[:], y[:], train_acc_demand=0.7, batch_size=2000)
 
             # Record the training time
             train_time = time.time()-start
 
             # Start Testing
             start = time.time()
-            y_pred = MNIST.test(test_x[:4000])
+            y_pred = MNIST.test(test_x[:])
             test_time = time.time()-start
-            acc = MNIST.accuracy(y_true=test_y[:4000], y_pred=y_pred[:4000])
+            acc = MNIST.accuracy(y_true=test_y[:], y_pred=y_pred[:])
             print('Training time:{:.3f} Testing time:{:.3f} Dimension:{} Level:{}'.format(
                 train_time, test_time, dimension, level))
             print("Accuracy:{:.4f}".format(acc))
