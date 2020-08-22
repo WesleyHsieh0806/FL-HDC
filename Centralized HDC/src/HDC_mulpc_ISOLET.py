@@ -237,8 +237,8 @@ class HDC:
     def cosine_similarity(self, Query_vector, Prototpye_vector):
         '''return cos(A,B)=|A'*B'|=|C| C is the sum of element'''
         # 這個function只處理1對1的cosine similarity
-        cos_sim = np.dot(Query_vector/np.linalg.norm(Query_vector),
-                         Prototpye_vector.T/np.linalg.norm(Prototpye_vector))
+        cos_sim = np.dot(Query_vector, Prototpye_vector.T) / \
+            (np.linalg.norm(Query_vector)*np.linalg.norm(Prototpye_vector))
         return cos_sim
 
     def most_similar_class(self, Query_vector):
