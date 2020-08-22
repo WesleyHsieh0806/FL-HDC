@@ -1,0 +1,8 @@
+MNIST/data_csv/train_data.csv filter=lfs diff=lfs merge=lfs -text
+MNIST/data_csv/train_label.csv filter=lfs diff=lfs merge=lfs -text
+MNIST/data_csv/test_data.csv filter=lfs diff=lfs merge=lfs -text
+MNIST/data_csv/test_label.csv filter=lfs diff=lfs merge=lfs -text
+MNIST/sorted_data_csv/test_data.csv filter=lfs diff=lfs merge=lfs -text
+MNIST/sorted_data_csv/test_label.csv filter=lfs diff=lfs merge=lfs -text
+MNIST/sorted_data_csv/train_data.csv filter=lfs diff=lfs merge=lfs -text
+MNIST/sorted_data_csv/train_label.csv filter=lfs diff=lfs merge=lfs -text
