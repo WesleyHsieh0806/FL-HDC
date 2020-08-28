@@ -343,8 +343,8 @@ class HDC:
                 query_vector += self.IM_vector['feature' +
                                                str(feature)] * self.CIM_vector[0+lev] * self.IM_vector['feature' + str(feature+1)] * self.CIM_vector[0+LEV]
         # 這裡有更動 先將query vector做binarize 可能導致accuracy下降
-        query_vector[query_vector > 0] = 1
-        query_vector[query_vector < 0] = -1
+        # query_vector[query_vector > 0] = 1
+        # query_vector[query_vector < 0] = -1
         y_pred = self.most_similar_class(query_vector)
         # If this function is called in retrain, we have to return query_vector
         if retrain == True:
@@ -380,8 +380,8 @@ class HDC:
             # 以y的數值 決定這是哪一個class (0~self.nof_class-1)
             whichclass = int(y[data])
             # Binarize spatial_vector (May cause the accuracy to drop)
-            spatial_vector[data][spatial_vector[data] > 0] = 1
-            spatial_vector[data][spatial_vector[data] < 0] = -1
+            # spatial_vector[data][spatial_vector[data] > 0] = 1
+            # spatial_vector[data][spatial_vector[data] < 0] = -1
 
             self.Prototype_vector['integer'][whichclass] += spatial_vector[data]
 
