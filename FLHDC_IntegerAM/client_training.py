@@ -66,9 +66,7 @@ def client_training(client_number, dimension, level, Nof_feature,
     * Dataset as "Upload.pickle" for Gloabl model
     '''
     train_data, train_label, test_data, test_label = load_data(client_number)
-    # Partition data into train/val dataset
-    train_data, train_label, val_data, val_label = partition_train_val(
-        train_data=train_data, train_label=train_label)
+
     # Train and Retrain the Model
     MNIST = HDC.HDC(dim=dimension, nof_class=nof_class,
                     nof_feature=Nof_feature, level=level, PCA_projection=PCA_Projection, binaryAM=binaryAM)

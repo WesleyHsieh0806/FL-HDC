@@ -6,43 +6,29 @@ import pandas as pd
 * Plot the accuracy of each parameter setup
 '''
 Dir = os.path.dirname(__file__)
-accuracy = []
-for K in [20, 40, 80, 100, 120]:
-    for dim in [1000, 2000, 5000, 10000]:
-        with open(os.path.join(Dir, 're_dim'+str(dim)+"_K"+str(K)+".csv"), 'r') as f:
+for K in [100]:
+    for dim in [10000]:
+        with open(os.path.join(Dir, 'dim'+str(dim)+"_K"+str(K)+".csv"), 'r') as f:
             for line in f:
                 # append the average of results for each parameter setup into the accuracy list
-                if len(accuracy) == 0:
-                    accuracy.append(np.average(np.array(line.strip().strip(
-                        ',').split(','), dtype=float), axis=0))
-                else:
 
-                    accuracy.append(np.average(np.array(line.strip().strip(
-                        ',').split(','), dtype=float)))
-accuracy = np.array(accuracy, dtype=np.float64).reshape(5, 4)
-accuracy_df = pd.DataFrame(accuracy, columns=["dim"+str(dim) for dim in [
-                           1000, 2000, 5000, 10000]], index=[K for K in [20, 40, 80, 100, 120]])
-accuracy_df.to_csv(os.path.join(Dir, 're_Avg_accuracy.csv'))
+                accuracy = np.array(line.strip().strip(
+                    ',').split(','), dtype=float)
 
-client20 = np.array(accuracy_df.iloc[0, :], dtype=np.float64)
-client40 = np.array(accuracy_df.iloc[1, :], dtype=np.float64)
-client80 = np.array(accuracy_df.iloc[2, :], dtype=np.float64)
-client100 = np.array(accuracy_df.iloc[3, :], dtype=np.float64)
-client120 = np.array(accuracy_df.iloc[4, :], dtype=np.float64)
-dim = [1000, 2000, 5000, 10000]
-plt.plot(dim[2:], client20[2:], color='r',
-         marker='o', linestyle='-', label='K=20')
-plt.plot(dim[2:], client40[2:], color='y',
-         marker='o', linestyle='-', label='K=40')
-plt.plot(dim[2:], client80[2:], color='g',
-         marker='o', linestyle='-', label='K=80')
-plt.plot(dim[2:], client100[2:], color='b',
-         marker='o', linestyle='-', label='K=100')
-plt.plot(dim[2:], client120[2:], color='c',
-         marker='o', linestyle='-', label='K=120')
+# FL with K=100
+FL_df = pd.read_csv(os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'FLHDC', 'Global_model', 'Avg_accuracy.csv'))
+FL = np.array(FL_df.iloc[3, 1:])
+# plot the accuracy between FLHDC vs FLHDC SecureHD(with retrain)
+x = [i for i in range(len(accuracy))]
+plt.plot(x, accuracy, color='yellowgreen', linewidth=4,
+         linestyle='-', label='FLHDC-SecureHD')
+plt.hlines(FL[3], x[0], x[-1], colors='b',
+           linestyles='--', label='FLHDC-One shot')
+plt.xlabel("Retrain iteration")
+plt.ylabel("Accuracy")
 plt.legend()
-plt.xticks(dim[2:])
 plt.grid()
-plt.xlabel('Dimension')
-plt.ylabel('Accuracy')
-plt.savefig(os.path.join(Dir, "re_Avg_accuracy.png"))
+plt.title("FLHDC-SecureHD")
+plt.savefig(os.path.join(Dir, 'dim10000_K100.png'))
+plt.close()
