@@ -7,7 +7,7 @@ $ python "Base Model/Base_model.py"
 $ python client_training.py
 $ python Global_model/global_model.py 
 $ python client_retraining.py.py 
-$ python Global_model/global_model.py 
+$ python Global_model/global_model.py [retrain_epoch]
 ```
 or
 ```bash
