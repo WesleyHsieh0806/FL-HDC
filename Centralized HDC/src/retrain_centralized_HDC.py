@@ -59,15 +59,15 @@ def main():
     level = 21
     n_of_feature = len(x[0])
     # the result of each parameter setup is the average of 5 times
-    average_time = 10
+    average_time = 3
     result = {}
     Time = {}
-
     for dimension in Dimension:
         # Initialize the dictionary to record accuracy and training time
         result['dim'+str(dimension)] = []
         Time[str(dimension)+'time'] = []
-        for i in range(average_time):
+    for i in range(average_time):
+        for dimension in Dimension:
             # Initialize HDC Model-BinaryAM
             MNIST = HDC.HDC(dimension, n_of_class, n_of_feature,
                             level=level, PCA_projection=False, binaryAM=True)
@@ -75,10 +75,21 @@ def main():
             # Begin training
             start = time.time()
             MNIST.train(x[:], y[:])
+            train_time = time.time()-start
+
+            # Begin testing(One-shot)
+            start = time.time()
+            y_pred = MNIST.test(test_x[:])
+            test_time = time.time()-start
+            acc = MNIST.accuracy(y_true=test_y[:], y_pred=y_pred[:])
+            print('Training time:{:.3f} Testing time:{:.3f} Dimension:{} Level:{}'.format(
+                train_time, test_time, dimension, level))
+            print("Accuracy:{:.4f}".format(acc))
 
             # Retrain
+            print("{:=^40}".format("Start Retraining"))
             _, acc_history, time_history = MNIST.retrain(
-                test_x[:], test_y[:], x[:], y[:], num_epoch=3, train_acc_demand=0.85, batch_size=len(x)//3, save_path='HDC_model.pickle')
+                test_x[:], test_y[:], x[:], y[:], num_epoch=30, train_acc_demand=0.85, batch_size=len(x)//3, save_path='HDC_model.pickle')
 
             # Record accuracy and training time
             result['dim'+str(dimension)].append(acc_history)

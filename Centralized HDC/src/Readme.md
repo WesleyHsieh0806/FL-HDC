@@ -20,3 +20,5 @@ Execute the state-of-art one-shot HDC on MNIST dataset with each parameter setup
 Record the average accuracy and execution time
 ## HDC_Centralized.py:
 The library of HDC Model
+## HDC_model.pickle:
+The best model saved in retraining progress
