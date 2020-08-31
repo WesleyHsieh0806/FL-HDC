@@ -240,9 +240,9 @@ class HDC:
                         if predicted_class != train_y[data_index][0]:
                             # In this case : predicted_class = mismatched class
                             # the real class is train_y[data]
-                            self.Prototype_vector['integer'][predicted_class] -= query_vector
+                            # self.Prototype_vector['integer'][predicted_class] -= query_vector
                             self.Prototype_vector['integer'][train_y[data_index][0]
-                                                             ] += query_vector
+                                                             ] += 2*query_vector
 
                     else:
                         # All data have been encoded

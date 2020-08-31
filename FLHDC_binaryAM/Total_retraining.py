@@ -7,7 +7,7 @@ import os
 
 def main():
     average_time = 1
-    retrain_update_time = 1
+    retrain_update_time = 3
     for i in range(average_time):
         for K in [20]:
             for dim in [10000]:

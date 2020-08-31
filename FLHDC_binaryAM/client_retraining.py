@@ -8,18 +8,18 @@ import library.HDC_FL as HDC
 '''
 
 
-def acquire_IntegerAM(model, train_y, val_y, static=0.2):
+def acquire_IntegerAM(model, train_y, val_y, static=7e-3):
     ''' 
-    * Acquire Integer Ck by multiplying binary class-k hypervector with C = static*nj*#of feature // nof_class
-    @ static: reasonable static lies in [0, 1], static has an impact on the difficulty to flip the binary AM during retrain 
+    * Acquire Integer Ck by multiplying binary class-k hypervector with C = static*nj*H_magnitude // nof_class
+    @ static: reasonable static lies in [0, 0.2], static has an impact on the difficulty to flip the binary AM during retrain 
     @ n:local data size
     @ L:number of class
     @ model: HDC Model
     '''
     n = len(train_y) + len(val_y)
     L = model.nof_class
-    nof_feature = model.nof_feature
-    C = int(static*n*nof_feature//L)
+    H_magnitude = model.nof_feature//2
+    C = int(static*n*H_magnitude//L)
     # initialize integer AM
     model.Prototype_vector['integer'] = {}
     for i in range(0, model.nof_class):
@@ -109,7 +109,8 @@ def client_retraining(client_number, dimension, level, Nof_feature,
     # Save the AM and Size of local Dataset as pickle file
     Upload_to_Server = {}
     for label in range(nof_class):
-        Upload_to_Server['Size'+str(label)] = len(train_label == label)
+        Upload_to_Server['Size' +
+                         str(label)] = np.count_nonzero(train_label == label)
     Upload_to_Server['AM'] = MNIST.Prototype_vector
     with open(os.path.join(os.path.join(os.path.dirname(
             __file__), 'client'+str(client_number)), 'Upload.pickle'), 'wb') as f:
