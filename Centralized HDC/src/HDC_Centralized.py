@@ -14,7 +14,8 @@ from math import ceil
 # you can use HDC.help() to realize what parameters are necessary to be filled in
 # self回傳object資訊 沒有self回傳class資訊
 # 2020/6/7:Update PCA functions
-# 2020/7/29:Update Retrain, Add integer AM(Only binary AM before)-> binary AM for testing, integer AM for retrain
+# 2020/7/29:Update Retrain_earlystop, Add integer AM(Only binary AM before)-> binary AM for testing, integer AM for retrain
+# 2020/8/7:Update Retrain
 np.random.seed(0)
 random.seed(0)
 
@@ -33,19 +34,22 @@ class HDC:
     # self.minimum = np.min(x, axis=0)
     # self.difference = self.maximum - self.minimum
     # self.PCA_projection
-    def __init__(self, dim=10000, nof_class=0, nof_feature=0, level=21, PCA_projection=False):
+    # self.binaryAM (use binaryAM or IntegerAM)
+    def __init__(self, dim=10000, nof_class=0, nof_feature=0, level=21, PCA_projection=False, binaryAM=True):
         ''' initialize some necessary attribute and data'''
-        # 1.feature數量(how many IM vector?) -->not necessary
-        # 2.vector dimension
-        # 3.class數量(how many prototype vector)
+        # @nof_feature:feature數量(how many IM vector?) -->not necessary
+        # @dim:vector dimension
+        # @nof_class:class數量(how many prototype vector)
         self.level = int(level)
         self.nof_feature = int(nof_feature)
         self.nof_dimension = int(dim)
         self.nof_class = int(nof_class)
         # determine whether use PCA to project the features or not
         self.PCA_projection = PCA_projection
+        # binaryAM or IntegerAM
+        self.binaryAM = binaryAM
 
-    def train(self, x, y, IM_vector=None, CIM_vector=None):
+    def train(self, x, y, IM_vector=None, CIM_vector=None, maximum=None, minimum=None, difference=None):
         ''' use train data x y to train prototype vector'''
         # x,y須為ndarray
         # 此步驟 需要創建IM(字典) CIM(字典) Prototype vector(字典)
@@ -59,10 +63,20 @@ class HDC:
             (len(x), 1, self.nof_dimension)).astype(int)
         # 因為要將x每個feature的value根據數值切成level個等級 所以要記住某個範圍的數值
         # 以level=21為例子 假如數值範圍是0~20 就是0是一個level
-        # 但這裡實作 我打算將0~20/21 當作level 0
+        # 但這裡實作 我打算將(0~20)/21 當作level 0
         # 要將maximum這些存下來 才能用在test
-        self.maximum = np.max(x, axis=0)
-        self.minimum = np.min(x, axis=0)
+        if maximum is not None:
+            # test if the maximum should be initialized with demanded values(FL settings)
+            print('Initial Maximum with given values')
+            self.maximum = maximum
+        else:
+            self.maximum = np.max(x, axis=0)
+        if minimum is not None:
+            # test if the minimum should be initialized with demanded values(FL settings)
+            print('Initial Minimum with given values')
+            self.minimum = minimum
+        else:
+            self.minimum = np.min(x, axis=0)
         self.difference = self.maximum - self.minimum + 1e-8
 
         self.encoder_spatial_vector(x, spatial_vector, y)
@@ -146,8 +160,12 @@ class HDC:
                                                            > 0] = 1
                     self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS]
                                                            < 0] = -1
-                    self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS] == 0] = np.random.choice(
-                        [1, -1], size=np.count_nonzero(self.Prototype_vector['integer'][CLASS] == 0))
+                    '''
+                    * In NonIID setting, the zero elements should not be changed to 1 -1, since there are many classes
+                    * (which do not exist in the local dataset) vectors which have only zero elements
+                    '''
+                    # self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS] == 0] = np.random.choice(
+                    #     [1, -1], size=np.count_nonzero(self.Prototype_vector['integer'][CLASS] == 0))
                 ''' Print the training_accuracy for each batch'''
                 if self.PCA_projection:
                     # We have to turn off the PCA_projection since train_x has already been projected
@@ -185,6 +203,106 @@ class HDC:
         print("\nRetrain Complete! Best accuracy:{:.4f}".format(best_acc))
         return best_acc
 
+    def retrain(self, test_x, test_y, train_x, train_y, num_epoch=5, train_acc_demand=0.85, batch_size=400, save_path='HDC_model.pickle'):
+        ''' 
+        Retrain the prototype vector(integer AM) with training data and stops after num_epoch
+        @train_acc_demand: the least accuracy which should be achieved before stop retraining
+        @batch_size : The number of data passed through between two prototype AM update
+        @save_path : the path where to save the model as pickle file
+        Return : best test accuracy achieved in retraining phase
+        '''
+        # train_x:(n,feature) train_y(n,1)
+        best_acc = 0.
+        last_acc = -1.
+        train_acc = 0.
+        acc = 0.
+        acc_history = []
+        time_history = []
+        total_batch = ceil(len(train_x)/batch_size)
+        if self.PCA_projection:
+            # in retrain phase, we have to project the training data first if PCA was used in training
+            # testing data do not need to be projected here since self.test already do it for us
+            train_x = self.PCA_test(train_x)
+        for retrain_epoch in range(1, num_epoch+1):
+            # Record the execution time of each epoch
+            execution_time = 0.
+            '''If the test-set accuracy gets lower, then retrain stops'''
+            for batch in range(total_batch):
+                # Record the start time of each iteration
+                batch_start = time.time()
+                # batch retraining: Update binary AM and test-set accuracy for each batch
+                for data in range(batch_size):
+                    data_index = batch*batch_size + data
+                    if data_index < len(train_x):
+                        # there are still data which have not been passed encoded
+                        query_vector = np.zeros(
+                            (1, self.nof_dimension)).astype(int)
+                        print("-- Retrain Epoch{} --[{}/{}] Dimension:{} Level:{}".format(retrain_epoch, data_index+1,
+                                                                                          len(train_x), self.nof_dimension, self.level), end='\r')
+                        # Prediction
+                        predicted_class, query_vector = self.encoder_query_vector(
+                            train_x[data_index], query_vector, data_index, retrain=True)
+                        # if the data is wrongly predicted, subtract the mismatched prototype vector by query_vector
+                        if predicted_class != train_y[data_index][0]:
+                            # In this case : predicted_class = mismatched class
+                            # the real class is train_y[data]
+                            # self.Prototype_vector['integer'][predicted_class] -= query_vector
+                            self.Prototype_vector['integer'][train_y[data_index][0]
+                                                             ] += 2*query_vector
+
+                    else:
+                        # All data have been encoded
+                        break
+                # Record the time of the end of each batch
+                execution_time += time.time()-batch_start
+                print("\nUpdate Test-set accuracy...")
+                ''' Binarize Prototype Vector and update binary AM'''
+                for CLASS in range(0, self.nof_class):
+                    # After Retraining, the binary Prototype vector should be updated()
+                    # As a result, we have to binarize them (>0 --> 1   <0 --> -1)
+                    # Special case: if an element is 0, then randomly change it into 1 or -1
+                    self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS]
+                                                           > 0] = 1
+                    self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS]
+                                                           < 0] = -1
+                    '''
+                    * In NonIID setting, the zero elements should not be changed to 1 -1, since there are many classes
+                    * (which do not exist in the local dataset) vectors which have only zero elements
+                    '''
+                    # self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS] == 0] = np.random.choice(
+                    #     [1, -1], size=np.count_nonzero(self.Prototype_vector['integer'][CLASS] == 0))
+                ''' Print the training_accuracy for each batch'''
+                if self.PCA_projection:
+                    # We have to turn off the PCA_projection since train_x has already been projected
+                    self.PCA_projection = False
+                    train_y_pred = self.test(train_x)
+                    self.PCA_projection = True
+                else:
+                    train_y_pred = self.test(train_x)
+                train_acc = self.accuracy(y_true=train_y, y_pred=train_y_pred)
+                print("Training accuracy:{:.4f}".format(train_acc))
+
+                '''Predict the test data'''
+                y_pred = self.test(test_x)
+                ''' Acquire the test-accuracy to see the results of retraining'''
+                # Update accuracy
+                last_acc = acc
+                acc = self.accuracy(y_true=test_y, y_pred=y_pred)
+                # Update drop time
+                if acc > best_acc:
+                    best_acc = acc
+                    print("Currently best accuracy:{:.4f}".format(best_acc))
+                    self.save_model(path=save_path)
+                print("Test accuracy:{:.4f}".format(acc))
+                print("Last accuracy:{:.4f}".format(
+                    last_acc))
+            # Record the accuracy of each epoch in acc_history
+            acc_history.append(acc)
+            # Record the execution of each epoch in time_history
+            time_history.append(execution_time)
+        print("\nRetrain Complete! Best accuracy:{:.4f}".format(best_acc))
+        return best_acc, acc_history, time_history
+
     def test(self, test_x):
         ''' return the predicted y array(class) '''
         # 首先要將test data經過同樣encoder 並產生query vector
@@ -193,12 +311,9 @@ class HDC:
         query_vector = np.zeros(
             (len(test_x), 1, self.nof_dimension)).astype(int)
         self.y_pred = np.zeros((len(test_x), 1))
-        # 因為要將x每個feature的value根據數值切成level個等級 所以要記住某個範圍的數值
-        # 以level=21為例子 假如數值範圍是0~20 就是0是一個level
-        # 但這裡實作 我打算將0~20/21 當作level 0
 
         ''' encoding and prediction'''
-        # 利用multiprocessing 的pool 去做多進程(多個CPU核心去做運算)
+        # Operate Multiprocess with pool(from multiprocessing)(多個CPU核心去做運算)
         # Pool() 代表利用cpu最大核心數量去跑
         # 用 starmap function他就會自動分配資料讓核心去跑 並回傳每次function的結果成一個list
         # 這裡要注意用多核心去跑的時候 即使在function裡面改了self.pred的value 也不會改動到self.pred的value
@@ -238,7 +353,7 @@ class HDC:
         '''return cos(A,B)=|A'*B'|=|C| C is the sum of element'''
         # 這個function只處理1對1的cosine similarity
         cos_sim = np.dot(Query_vector, Prototpye_vector.T) / \
-            (np.linalg.norm(Query_vector)*np.linalg.norm(Prototpye_vector))
+            (np.linalg.norm(Query_vector)*np.linalg.norm(Prototpye_vector)+1e-9)
         return cos_sim
 
     def most_similar_class(self, Query_vector):
@@ -246,10 +361,13 @@ class HDC:
         maximum = -100
         max_class = -1
         for Class in range(0, self.nof_class):
-            # Compare similarity with binary AM
-            similarity = self.cosine_similarity(
-                Query_vector, self.Prototype_vector['binary'][Class])
-
+            # Compare similarity with AM
+            if self.binaryAM:
+                similarity = self.cosine_similarity(
+                    Query_vector, self.Prototype_vector['binary'][Class])
+            else:
+                similarity = self.cosine_similarity(
+                    Query_vector, self.Prototype_vector['integer'][Class])
             if similarity > maximum:
                 maximum = similarity
                 max_class = Class
@@ -262,7 +380,7 @@ class HDC:
             print('Initial IM with given vectors')
             self.IM_vector = IM_vector
             return
-        ''' 創建feature數量個vector element 為bipolar(1,-1)'''
+        ''' Construct #offeature vectors with each element being bipolar(1,-1)'''
         self.IM_vector = {}
         for i in range(1, self.nof_feature+1):
             # np.random.choice([1,-1],size) 隨機二選一 size代表選幾次
@@ -275,7 +393,7 @@ class HDC:
             print("Initial CIM with given vectors")
             self.CIM_vector = CIM_vector
             return
-        ''' slice continuous signal into 21 self.level '''
+        ''' slice continuous signal into self.level parts '''
         # 每往上一個self.level就改 D/2/(self.level-1)個bit
 
         self.CIM_vector = {}
@@ -346,6 +464,7 @@ class HDC:
         # query_vector[query_vector > 0] = 1
         # query_vector[query_vector < 0] = -1
         y_pred = self.most_similar_class(query_vector)
+
         # If this function is called in retrain, we have to return query_vector
         if retrain == True:
             return y_pred, query_vector
@@ -359,6 +478,11 @@ class HDC:
                                                          len(x), self.nof_dimension, self.level), end='\r')
             # data會是0~最後 字典的key會叫做'featurei'
             for feature in range(1, self.nof_feature + 1):
+                # if the value exceeds maximum or falls below minimum, truncate it to maximum/minimum
+                if x[data, feature-1] > self.maximum[feature-1]:
+                    x[data, feature-1] = self.maximum[feature-1]
+                elif x[data, feature-1] < self.minimum[feature-1]:
+                    x[data, feature-1] = self.minimum[feature-1]
                 # 先看這個數值跟這個feature的minimum差多少  算出他的lev 藉此給他相對應的CIM vector
                 lev = (x[data, feature-1] - self.minimum[feature-1]
                        )//((self.difference[feature-1])/(self.level))
@@ -396,6 +520,7 @@ class HDC:
         model_dict['nof_feature'] = self.nof_feature
         model_dict['level'] = self.level
         model_dict['PCA'] = self.PCA_projection
+        model_dict['BinaryAM'] = self.binaryAM
         model_dict['Prototype_vector'] = self.Prototype_vector
         model_dict['max'] = self.maximum
         model_dict['min'] = self.minimum
@@ -427,6 +552,8 @@ class HDC:
         self.maximum = model_dict['max']
         self.minimum = model_dict['min']
         self.difference = model_dict['difference']
+        self.PCA_projection = model_dict['PCA']
+        self.binaryAM = model_dict['BinaryAM']
 
     def help():
         '''model usage instruction'''

@@ -69,10 +69,6 @@ def main():
             start = time.time()
             MNIST.train(x[:], y[:])
 
-            # Retrain
-            MNIST.retrain_earlystop(
-                test_x[:], test_y[:], x[:], y[:], train_acc_demand=0.7, batch_size=2000)
-
             # Record the training time
             train_time = time.time()-start
 
