@@ -86,6 +86,8 @@ def main():
                 train_time, test_time, dimension, level))
             print("Accuracy:{:.4f}".format(acc))
 
+            # # Retrain the saved model
+            # MNIST.load_model('HDC_model.pickle')
             # Retrain
             print("{:=^40}".format("Start Retraining"))
             _, acc_history, time_history = MNIST.retrain(

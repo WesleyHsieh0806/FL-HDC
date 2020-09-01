@@ -10,6 +10,7 @@ import multiprocessing as mul
 from sklearn.decomposition import PCA
 import random
 import json
+import os
 from math import ceil
 # you can use HDC.help() to realize what parameters are necessary to be filled in
 # self回傳object資訊 沒有self回傳class資訊
@@ -279,8 +280,8 @@ class HDC:
                     self.PCA_projection = True
                 else:
                     train_y_pred = self.test(train_x)
-                train_acc = self.accuracy(y_true=train_y, y_pred=train_y_pred)
-                print("Training accuracy:{:.4f}".format(train_acc))
+                # train_acc = self.accuracy(y_true=train_y, y_pred=train_y_pred)
+                # print("Training accuracy:{:.4f}".format(train_acc))
 
                 '''Predict the test data'''
                 y_pred = self.test(test_x)
@@ -300,6 +301,16 @@ class HDC:
             acc_history.append(acc)
             # Record the execution of each epoch in time_history
             time_history.append(execution_time)
+            # Save the accuracy_history into csv files
+            with open(os.path.join(os.path.dirname(
+                    __file__), '../Result/retrain_60000+10000/tmp_Accuracy' +
+                    str(self.nof_dimension)+'.csv'), 'a+') as f:
+                f.write(str(acc)+',')
+            # Save retrain execution time into csv files
+            with open(os.path.join(os.path.dirname(
+                    __file__), '../Result/retrain_60000+10000/tmp_retraining_time' +
+                    str(self.nof_dimension)+'.csv'), 'a+') as f:
+                f.write(str(execution_time)+',')
         print("\nRetrain Complete! Best accuracy:{:.4f}".format(best_acc))
         return best_acc, acc_history, time_history
 
