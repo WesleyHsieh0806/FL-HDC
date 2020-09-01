@@ -272,14 +272,14 @@ class HDC:
                     '''
                     # self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS] == 0] = np.random.choice(
                     #     [1, -1], size=np.count_nonzero(self.Prototype_vector['integer'][CLASS] == 0))
-                ''' Print the training_accuracy for each batch'''
-                if self.PCA_projection:
-                    # We have to turn off the PCA_projection since train_x has already been projected
-                    self.PCA_projection = False
-                    train_y_pred = self.test(train_x)
-                    self.PCA_projection = True
-                else:
-                    train_y_pred = self.test(train_x)
+                # ''' Print the training_accuracy for each batch'''
+                # if self.PCA_projection:
+                #     # We have to turn off the PCA_projection since train_x has already been projected
+                #     self.PCA_projection = False
+                #     train_y_pred = self.test(train_x)
+                #     self.PCA_projection = True
+                # else:
+                #     train_y_pred = self.test(train_x)
                 # train_acc = self.accuracy(y_true=train_y, y_pred=train_y_pred)
                 # print("Training accuracy:{:.4f}".format(train_acc))
 
