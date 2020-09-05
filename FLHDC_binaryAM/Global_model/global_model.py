@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import numpy as np
-from library import HDC_FL as HDC
+from library import HDC_FL_binary as HDC
 import pickle
 import sys
 '''
@@ -55,54 +55,70 @@ def main():
     ''' load the size of local dataset and the AM from each client'''
     Prototype_vector = {}
     Prototype_vector['binary'] = {}
+    Prototype_vector['integer'] = {}
     # case1: training
     if len(sys.argv) == 1:
+        # Weighted Average the class hypervector by local data size
         for client in range(1, nof_clients+1):
             with open(os.path.join(os.path.join(os.path.join(os.path.dirname(__file__), '..'), 'client'+str(client)), 'Upload.pickle'), 'rb') as f:
                 # the size of local dataset and AM are included in Upload.pickle
                 client_dict = pickle.load(f)
-            size = client_dict['Size']
             if client == 1:
                 for label in range(nof_class):
-                    Prototype_vector['binary'][label] = size * \
+                    # Ck = sigma(njk * Ckj) @njk:class-k data size from clientj
+                    # Ckj: class-k hypervector from client j
+                    size = client_dict['Size'+str(label)]
+                    Prototype_vector['integer'][label] = size * \
                         client_dict['AM']['binary'][label]
             else:
+                # Ck = sigma(njk * Ckj) @njk:class-k data size from clientj
+                # Ckj: class-k hypervector from client j
                 for label in range(nof_class):
-                    Prototype_vector['binary'][label] += size * \
+                    size = client_dict['Size'+str(label)]
+                    Prototype_vector['integer'][label] += size * \
                         client_dict['AM']['binary'][label]
     # case2: retrain
     else:
         ''' 
-        * In retraining phase, the binaryAM should be updated as the following fomula:
-        * Ck = sigma(nj*Ckj) (Ckj is the class-k hypervector from client j)
-        * njk: size of class-k data from local dataset
+        * In retraining phase, the IntegerAM should be updated using the uploaded binarized retrain_vectors
+        * as this formula: Ck = Ck + sigma(njk * Rkj)  (Rkj:retrain_vectors of class-k from client j) 
         '''
+        # Read the IntegerAM of Global Model to do retrain
+        with open(os.path.join(file_dir, 'global_model_dict.pickle'), 'rb') as f:
+            last_global_model = pickle.load(f)
+        Prototype_vector = last_global_model['Prototype_vector']
+
         # We have sent an argument "retrain_epoch" into global_model.py to differentiate it from training process
         for client in range(1, nof_clients+1):
             with open(os.path.join(os.path.join(os.path.join(os.path.dirname(__file__), '..'), 'client'+str(client)), 'Upload.pickle'), 'rb') as f:
                 # the size of local dataset and AM are included in Upload.pickle
                 client_dict = pickle.load(f)
-            if client == 1:
-                for label in range(nof_class):
-                    size = client_dict['Size'+str(label)]
-                    Prototype_vector['binary'][label] = size * \
-                        client_dict['AM']['binary'][label]
-            else:
-                for label in range(nof_class):
-                    size = client_dict['Size'+str(label)]
-                    Prototype_vector['binary'][label] += size * \
-                        client_dict['AM']['binary'][label]
+            for label in range(nof_class):
+                size = client_dict['Size'+str(label)]
+                Prototype_vector['integer'][label] += size * \
+                    client_dict['Retrain_vector'][label]
+
     ''' Binarize it to acquire binary AM'''
     for CLASS in range(0, nof_class):
         # After Retraining, the binary Prototype vector should be updated()
         # As a result, we have to binarize them (>0 --> 1   <0 --> -1)
         # Special case: if an element is 0, then randomly change it into 1 or -1
-        Prototype_vector['binary'][CLASS][Prototype_vector['binary'][CLASS]
+        if len(sys.argv) != 1:
+            last_vector = Prototype_vector['binary'][CLASS]
+
+        Prototype_vector['binary'][CLASS] = np.zeros(
+            Prototype_vector['integer'][CLASS].shape).astype(int)
+        Prototype_vector['binary'][CLASS][Prototype_vector['integer'][CLASS]
                                           > 0] = 1
-        Prototype_vector['binary'][CLASS][Prototype_vector['binary'][CLASS]
+        Prototype_vector['binary'][CLASS][Prototype_vector['integer'][CLASS]
                                           < 0] = -1
-        Prototype_vector['binary'][CLASS][Prototype_vector['binary'][CLASS] == 0] = np.random.choice(
-            [1, -1], size=np.count_nonzero(Prototype_vector['binary'][CLASS] == 0))
+        Prototype_vector['binary'][CLASS][Prototype_vector['integer'][CLASS] == 0] = np.random.choice(
+            [1, -1], size=np.count_nonzero(Prototype_vector['integer'][CLASS] == 0))
+        print("# of 0:", np.count_nonzero(
+            Prototype_vector['integer'][CLASS] == 0))
+        if len(sys.argv) != 1:
+            print("Flipped bit:", np.count_nonzero(
+                Prototype_vector['binary'][CLASS] != last_vector))
     ''' Print out the current iteration'''
     if len(sys.argv) > 1:
         print("Retrain Epoch:{}".format(sys.argv[1]))

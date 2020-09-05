@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import pickle
-import library.HDC_FL as HDC
+import library.HDC_FL_binary as HDC
 '''
 * Train the HDC Model for each client and retrain the Model afterward.
 '''
@@ -75,7 +75,9 @@ def client_training(client_number, dimension, level, Nof_feature,
 
     # Save the AM and Size of local Dataset as pickle file
     Upload_to_Server = {}
-    Upload_to_Server['Size'] = len(train_data)
+    for label in range(nof_class):
+        Upload_to_Server['Size' +
+                         str(label)] = np.count_nonzero(train_label == label)
     Upload_to_Server['AM'] = MNIST.Prototype_vector
     with open(os.path.join(os.path.join(os.path.dirname(
             __file__), 'client'+str(client_number)), 'Upload.pickle'), 'wb') as f:

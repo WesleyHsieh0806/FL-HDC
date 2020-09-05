@@ -2,29 +2,10 @@ import pandas as pd
 import numpy as np
 import os
 import pickle
-import library.HDC_FL as HDC
+import library.HDC_FL_binary as HDC
 '''
 * Train the HDC Model for each client and retrain the Model afterward.
 '''
-
-
-def acquire_IntegerAM(model, train_y, val_y, static=7e-3):
-    ''' 
-    * Acquire Integer Ck by multiplying binary class-k hypervector with C = static*nj*H_magnitude // nof_class
-    @ static: reasonable static lies in [0, 0.2], static has an impact on the difficulty to flip the binary AM during retrain 
-    @ n:local data size
-    @ L:number of class
-    @ model: HDC Model
-    '''
-    n = len(train_y) + len(val_y)
-    L = model.nof_class
-    H_magnitude = model.nof_feature//2
-    C = int(static*n*H_magnitude//L)
-    # initialize integer AM
-    model.Prototype_vector['integer'] = {}
-    for i in range(0, model.nof_class):
-        # multiply binary AM by C to acquire integerAM (for later retraining use)
-        model.Prototype_vector['integer'][i] = model.Prototype_vector['binary'][i] * C
 
 
 def partition_train_val(train_data, train_label, ratio=0.8):
@@ -95,23 +76,26 @@ def client_retraining(client_number, dimension, level, Nof_feature,
     MNIST.load_model(os.path.join(
         file_dir, 'Global_model', 'global_model_dict.pickle'))
 
-    ''' Since the Global Model only sends binary AM, we have to acquire integerAM by multiplying binaryAM'''
-    acquire_IntegerAM(MNIST, train_label, val_label)
-
+    # Size of Mini-Batch
+    ''' 
+    * In retrain process, we randomly sample a batch of data to collect retrain_vector
+    * so that we can prevent the oscillation of global model
+    * (The uploaded retrain_vector are accumulated and binarized. As a result, 
+    * too large size may cause the quality become bad )
+    '''
+    batch_size = np.minimum(len(train_data), 1800)
+    batch_index = np.random.choice(
+        range(len(train_data)), batch_size, replace=False)
     # Retrain the AM
-    MNIST.retrain(test_x=val_data, test_y=val_label, train_x=train_data, train_y=train_label, num_epoch=1, train_acc_demand=0.7, batch_size=len(train_data)//3, save_path=os.path.join(os.path.join(os.path.dirname(
+    _, Times = MNIST.retrain(test_x=val_data, test_y=val_label, train_x=train_data[batch_index], train_y=train_label[batch_index], num_epoch=1, train_acc_demand=0.7, batch_size=batch_size, save_path=os.path.join(os.path.join(os.path.dirname(
         __file__), 'client'+str(client_number)), 'Retrain_Model.pickle'))
 
-    # Load the Best Retrain_Model
-    MNIST.load_model(os.path.join(os.path.join(os.path.dirname(
-        __file__), 'client'+str(client_number)), 'Retrain_Model.pickle'))
-
-    # Save the AM and Size of local Dataset as pickle file
+    # Save the Retrain_vector and Size of local Dataset as pickle file
     Upload_to_Server = {}
     for label in range(nof_class):
         Upload_to_Server['Size' +
-                         str(label)] = np.count_nonzero(train_label == label)
-    Upload_to_Server['AM'] = MNIST.Prototype_vector
+                         str(label)] = Times[label]
+    Upload_to_Server['Retrain_vector'] = MNIST.retrain_vector
     with open(os.path.join(os.path.join(os.path.dirname(
             __file__), 'client'+str(client_number)), 'Upload.pickle'), 'wb') as f:
         pickle.dump(Upload_to_Server, f)
