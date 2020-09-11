@@ -11,6 +11,59 @@ import sys
 '''
 
 
+def new_lr(larger, equal, current_lr):
+    ''' Modify the learning rate according to the relationship between # of flipped bit and 10
+    @ Return: the value of the next learning rate
+    '''
+    new_lr = 0
+    lr_list = [1, 2, 3, 4, 5]
+    if larger:
+        # Increase the lr to the one-level larger one
+        level = lr_list.index(current_lr)
+        level += 1
+        if level >= len(lr_list):
+            level = len(lr_list)-1
+        new_lr = lr_list[level]
+    elif equal:
+        new_lr = current_lr
+    else:
+        # Decrease the lr to the one-level smaller one
+        level = lr_list.index(current_lr)
+        level -= 1
+        if level < 0:
+            level = 0
+        new_lr = lr_list[level]
+    return new_lr
+
+
+def LR_Decider(flipped_bit, learning_rate, number_of_class):
+    ''' Adjust the learning rate by # of flipped bit last time
+    * the learning rate will lie in these given values [1, 2, 3, 4, 5] 
+    * The intution here is to maintain the # of flipped bit to be around 10
+    * If # of flipped_bit >10 : the learning rate will get one-level smaller: e.g. 2->1
+    * If # of flipped_bit <10 : the learning rate will get one-level larger: e.g. 1->2
+    * If # of flipped_bit =10 : the learning rate remains the same
+    @ Return: A dictionary consists of new learning rate(learning_rate[Class] = XX)
+    '''
+    for Class in range(number_of_class):
+        if flipped_bit[Class] > 10:
+            lr_larger = False
+            equal = False
+            learning_rate[Class] = new_lr(
+                lr_larger, equal, learning_rate[Class])
+        elif flipped_bit[Class] == 10:
+            lr_larger = False
+            equal = True
+            learning_rate[Class] = new_lr(
+                lr_larger, equal, learning_rate[Class])
+        else:
+            lr_larger = True
+            equal = False
+            learning_rate[Class] = new_lr(
+                lr_larger, equal, learning_rate[Class])
+    return learning_rate
+
+
 def load_data():
     '''Load test dataset '''
     sort_test_data_path = os.path.join(os.path.dirname(
@@ -81,12 +134,29 @@ def main():
     else:
         ''' 
         * In retraining phase, the IntegerAM should be updated using the uploaded binarized retrain_vectors
-        * as this formula: Ck = Ck + sigma(njk * Rkj)  (Rkj:retrain_vectors of class-k from client j) 
+        * as this formula: Ck = Ck + sigma(learning rate * njk * Rkj)  (Rkj:retrain_vectors of class-k from client j) 
         '''
         # Read the IntegerAM of Global Model to do retrain
         with open(os.path.join(file_dir, 'global_model_dict.pickle'), 'rb') as f:
             last_global_model = pickle.load(f)
         Prototype_vector = last_global_model['Prototype_vector']
+
+        ''' Read the number of flipped bit and learning rate for each class 
+        last time to determine the learning rate
+        '''
+        if os.path.isfile(os.path.join(file_dir, 'flipped_bit.pickle')):
+            # If we have the record of flipped bit last time, determine the learning rate by it
+            with open(os.path.join(file_dir, 'flipped_bit.pickle'), 'rb') as f:
+                flipped_bit = pickle.load(f)
+            with open(os.path.join(file_dir, 'learning_rate.pickle'), 'rb') as f:
+                learning_rate = pickle.load(f)
+            learning_rate = LR_Decider(
+                flipped_bit, learning_rate, number_of_class=nof_class)
+        else:
+            # If we don't have the record last time, just assign the learning rate to be the largest level
+            learning_rate = {}
+            for Class in range(nof_class):
+                learning_rate[Class] = 5
 
         # We have sent an argument "retrain_epoch" into global_model.py to differentiate it from training process
         for client in range(1, nof_clients+1):
@@ -95,10 +165,11 @@ def main():
                 client_dict = pickle.load(f)
             for label in range(nof_class):
                 size = client_dict['Size'+str(label)]
-                Prototype_vector['integer'][label] += size * \
+                Prototype_vector['integer'][label] += int(learning_rate[label] * size) * \
                     client_dict['Retrain_vector'][label]
 
     ''' Binarize it to acquire binary AM'''
+    flipped_bit = {}
     for CLASS in range(0, nof_class):
         # After Retraining, the binary Prototype vector should be updated()
         # As a result, we have to binarize them (>0 --> 1   <0 --> -1)
@@ -116,13 +187,24 @@ def main():
             [1, -1], size=np.count_nonzero(Prototype_vector['integer'][CLASS] == 0))
         print("# of 0:", np.count_nonzero(
             Prototype_vector['integer'][CLASS] == 0))
+        # print out the number of flipped bit
         if len(sys.argv) != 1:
-            print("Flipped bit:", np.count_nonzero(
-                Prototype_vector['binary'][CLASS] != last_vector))
+            number_of_flipped_bit = np.count_nonzero(
+                Prototype_vector['binary'][CLASS] != last_vector)
+            print("Flipped bit:", number_of_flipped_bit)
+            print("Learning rate:", learning_rate[CLASS])
+            # Save the number of flipped bit into dictionary
+            flipped_bit[CLASS] = number_of_flipped_bit
     ''' Print out the current iteration'''
     if len(sys.argv) > 1:
-        print("Retrain Epoch:{}".format(sys.argv[1]))
         # We will send a parameter "retrain", which means the global model is in retraining phase
+        print("Retrain Epoch:{}".format(sys.argv[1]))
+        print("Save the Flipped bit and Learning rate...")
+        ''' Save the learning rate and flipped bit into pickle files'''
+        with open(os.path.join(file_dir, 'flipped_bit.pickle'), 'wb') as f:
+            pickle.dump(flipped_bit, f)
+        with open(os.path.join(file_dir, 'learning_rate.pickle'), 'wb') as f:
+            pickle.dump(learning_rate, f)
 
     '''Save the global model parameters as pickle files'''
     global_model_dict = {}
@@ -150,7 +232,7 @@ def main():
     acc = MNIST.accuracy(y_true=test_label, y_pred=y_pred)
     print("Accuracy:{:.4f}".format(acc))
 
-    with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'.csv'), 'a') as f:
+    with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_lr.csv'), 'a') as f:
         if len(sys.argv) == 1:
             f.write('\n')
         f.write(str(acc)+',')

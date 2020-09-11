@@ -67,7 +67,7 @@ def client_retraining(client_number, dimension, level, Nof_feature,
     '''
     file_dir = os.path.dirname(__file__)
     train_data, train_label, test_data, test_label = load_data(client_number)
-    # Partition data into train/val dataset
+    # # Partition data into train/val dataset
     train_data, train_label, val_data, val_label = partition_train_val(
         train_data=train_data, train_label=train_label)
     # Load the Global Model
@@ -83,7 +83,8 @@ def client_retraining(client_number, dimension, level, Nof_feature,
     * (The uploaded retrain_vector are accumulated and binarized. As a result, 
     * too large size may cause the quality become bad )
     '''
-    batch_size = np.minimum(len(train_data), 1800)
+    batch_size = np.minimum(
+        len(train_data), (len(train_data)+len(val_data))//5)
     batch_index = np.random.choice(
         range(len(train_data)), batch_size, replace=False)
     # Retrain the AM
