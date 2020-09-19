@@ -141,6 +141,10 @@ def main():
             last_global_model = pickle.load(f)
         Prototype_vector = last_global_model['Prototype_vector']
 
+        # Record the total times of modification for each label
+        Total_times = {}
+        for Class in range(nof_class):
+            Total_times[Class] = 0
         ''' Read the number of flipped bit and learning rate for each class 
         last time to determine the learning rate
         '''
@@ -167,6 +171,12 @@ def main():
                 size = client_dict['Size'+str(label)]
                 Prototype_vector['integer'][label] += int(learning_rate[label] * size) * \
                     client_dict['Retrain_vector'][label]
+                # add the size to total modification times
+                Total_times[label] += size
+        # Print out the total modification times
+        for Class in range(nof_class):
+            print("Class:{} Total times of modification:{}".format(
+                Class, Total_times[Class]))
 
     ''' Binarize it to acquire binary AM'''
     flipped_bit = {}
