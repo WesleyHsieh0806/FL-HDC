@@ -74,7 +74,7 @@ def client_retraining(client_number, dimension, level, Nof_feature,
     * too large size may cause the quality become bad )
     '''
     batch_size = np.minimum(
-        len(train_data), (len(train_data)+len(val_data))//5)
+        len(train_data), (len(train_data)+len(val_data))//3)
     batch_index = np.random.choice(
         range(len(train_data)), batch_size, replace=False)
     # Retrain the AM
