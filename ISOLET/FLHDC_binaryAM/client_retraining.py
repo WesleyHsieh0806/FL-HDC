@@ -58,8 +58,8 @@ def client_retraining(client_number, dimension, level, Nof_feature,
     file_dir = os.path.dirname(__file__)
     train_data, train_label = load_data(client_number)
     # # Partition data into train/val dataset
-    train_data, train_label, val_data, val_label = partition_train_val(
-        train_data=train_data, train_label=train_label)
+    # train_data, train_label, val_data, val_label = partition_train_val(
+    #     train_data=train_data, train_label=train_label)
     # Load the Global Model
     MNIST = HDC.HDC(dim=dimension, nof_class=nof_class,
                     nof_feature=Nof_feature, level=level, PCA_projection=PCA_Projection, binaryAM=binaryAM)
@@ -74,11 +74,11 @@ def client_retraining(client_number, dimension, level, Nof_feature,
     * too large size may cause the quality become bad )
     '''
     batch_size = np.minimum(
-        len(train_data), (len(train_data)+len(val_data))//3)
+        len(train_data), (len(train_data))//3)
     batch_index = np.random.choice(
         range(len(train_data)), batch_size, replace=False)
     # Retrain the AM
-    _, Times = MNIST.retrain(test_x=val_data, test_y=val_label, train_x=train_data[batch_index], train_y=train_label[batch_index], num_epoch=1, train_acc_demand=0.7, batch_size=batch_size, save_path=os.path.join(os.path.join(os.path.dirname(
+    _, Times = MNIST.retrain(test_x=train_data[batch_index], test_y=train_label[batch_index], train_x=train_data[batch_index], train_y=train_label[batch_index], num_epoch=1, train_acc_demand=0.7, batch_size=batch_size, save_path=os.path.join(os.path.join(os.path.dirname(
         __file__), 'client'+str(client_number)), 'Retrain_Model.pickle'))
 
     # Save the Retrain_vector and Size of local Dataset as pickle file
