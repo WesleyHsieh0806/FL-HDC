@@ -295,8 +295,8 @@ class HDC:
                     self.PCA_projection = True
                 else:
                     train_y_pred = self.test(train_x)
-                train_acc = self.accuracy(y_true=train_y, y_pred=train_y_pred)
-                print("Training accuracy:{:.4f}".format(train_acc))
+                # train_acc = self.accuracy(y_true=train_y, y_pred=train_y_pred)
+                # print("Training accuracy:{:.4f}".format(train_acc))
 
                 '''Predict the test data'''
                 y_pred = self.test(test_x)
