@@ -34,7 +34,7 @@ def main():
 
     # Read testing data
     test_data = pd.read_csv(test_data_path)
-    test_x = np.asarray(test_data.iloc[:, 1:], dtype=np.int)
+    test_x = np.asarray(test_data.iloc[:, 1:], dtype=np.float)
 
     # Read testing label
     test_label = pd.read_csv(test_label_path)
