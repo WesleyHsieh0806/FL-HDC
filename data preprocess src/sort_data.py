@@ -20,7 +20,7 @@ sort_test_data_path = '../MNIST/sorted_data_csv/test_data.csv'
 sort_test_label_path = '../MNIST/sorted_data_csv/test_label.csv'
 # Load the data
 train_data = pd.read_csv(train_data_path)
-train_data = np.asarray(train_data.iloc[:, :])
+train_data = np.asarray(train_data.iloc[:, 1:])
 
 train_label = pd.read_csv(train_label_path)
 train_label = np.asarray(train_label.iloc[:, 1:])

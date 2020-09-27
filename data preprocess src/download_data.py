@@ -24,21 +24,9 @@ train_label = train['label'].reshape(len(train['label']))
 test_data = test['image'].reshape([len(test['image']), -1])
 test_label = test['label'].reshape(len(test['label']))
 if not os.path.isfile('../MNIST/data_csv/train_data.csv'):
-    with open('../MNIST/data_csv/train_data.csv', 'w') as f:
-        # Create csv file for training data
-        for i in range(train_data.shape[1]):
-            f.write("feature"+str(i+1))
-            if i != (train_data.shape[1]-1):
-                f.write(',')
-            else:
-                f.write('\n')
-        for data in train_data:
-            for num_feature in range(len(data)):
-                f.write(str(data[num_feature]))
-                if num_feature != (len(data)-1):
-                    f.write(',')
-                else:
-                    f.write('\n')
+    train_data = pd.DataFrame(
+        train_data, columns=['Feature'+str(i) for i in range(1, len(train_data[0])+1)])
+    train_data.to_csv('../MNIST/data_csv/train_data.csv')
 # Create csv file for training label
 if not os.path.isfile('../MNIST/data_csv/train_label.csv'):
     train_label = pd.DataFrame(train_label, columns=['Label'])
