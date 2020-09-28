@@ -11,7 +11,7 @@ Dir = os.path.dirname(__file__)
 result = []
 for K in [20]:
     for dim in [10000]:
-        with open(os.path.join(Dir, 'dim'+str(dim)+"_K"+str(K)+"_lr.csv"), 'r') as f:
+        with open(os.path.join(Dir, 'dim'+str(dim)+"_K"+str(K)+"_lr_limit.csv"), 'r') as f:
             for line in f:
                 # append the average of results for each parameter setup into the accuracy list
                 result.append(np.array(line.strip().strip(

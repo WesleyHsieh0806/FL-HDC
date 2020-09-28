@@ -7,3 +7,4 @@ for dir in os.listdir():
 os.remove("Setup.pickle")
 os.remove("Global_model/flipped_bit.pickle")
 os.remove("Global_model/learning_rate.pickle")
+os.remove("Global_model/global_model_dict.pickle")

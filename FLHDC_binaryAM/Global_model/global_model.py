@@ -4,6 +4,7 @@ import numpy as np
 from library import HDC_FL_binary as HDC
 import pickle
 import sys
+import copy
 '''
 * Aggregate the AM of each client Model to acquire global Model 
 * Report the test-set accuracy of Global Model and save them as csv file
@@ -16,7 +17,7 @@ def new_lr(larger, equal, current_lr):
     @ Return: the value of the next learning rate
     '''
     new_lr = 0
-    lr_list = [1, 2, 3, 4, 5]
+    lr_list = list(range(1, 6))
     if larger:
         # Increase the lr to the one-level larger one
         level = lr_list.index(current_lr)
@@ -139,7 +140,11 @@ def main():
         # Read the IntegerAM of Global Model to do retrain
         with open(os.path.join(file_dir, 'global_model_dict.pickle'), 'rb') as f:
             last_global_model = pickle.load(f)
-        Prototype_vector = last_global_model['Prototype_vector']
+        '''
+        # Note that we should use deep copy to prevent last_global_model to be changed 
+        # since shallow copy will only copy first-level properties for a dictionary e.g. integer
+        # while deep copy copies deep properties such as list and arrays'''
+        Prototype_vector = copy.deepcopy(last_global_model['Prototype_vector'])
 
         # Record the total times of modification for each label
         Total_times = {}
@@ -173,6 +178,10 @@ def main():
                     client_dict['Retrain_vector'][label]
                 # add the size to total modification times
                 Total_times[label] += size
+                # test the quality of class1 retrain_vector
+                if label == 1:
+                    print("# of different bits between class1 hv and gradient:{}".format(np.count_nonzero(
+                        client_dict['Retrain_vector'][label] != Prototype_vector['binary'][label])))
         # Print out the total modification times
         for Class in range(nof_class):
             print("Class:{} Total times of modification:{}".format(
@@ -190,11 +199,9 @@ def main():
         Prototype_vector['binary'][CLASS] = np.zeros(
             Prototype_vector['integer'][CLASS].shape).astype(int)
         Prototype_vector['binary'][CLASS][Prototype_vector['integer'][CLASS]
-                                          > 0] = 1
+                                          >= 0] = 1
         Prototype_vector['binary'][CLASS][Prototype_vector['integer'][CLASS]
                                           < 0] = -1
-        Prototype_vector['binary'][CLASS][Prototype_vector['integer'][CLASS] == 0] = np.random.choice(
-            [1, -1], size=np.count_nonzero(Prototype_vector['integer'][CLASS] == 0))
         print("# of 0:", np.count_nonzero(
             Prototype_vector['integer'][CLASS] == 0))
         # print out the number of flipped bit
@@ -205,6 +212,16 @@ def main():
             print("Learning rate:", learning_rate[CLASS])
             # Save the number of flipped bit into dictionary
             flipped_bit[CLASS] = number_of_flipped_bit
+
+            '''
+            * To prevent the # of flipped bit explodes, we cancel the update of integerAM and binaryAM
+            * once the # of flipped bit exceeds 1000
+            '''
+            if number_of_flipped_bit > 500:
+                Prototype_vector['binary'][CLASS] = last_vector
+                Prototype_vector['integer'][CLASS] = last_global_model['Prototype_vector']['integer'][CLASS]
+                print(
+                    "Flipped bit explodes!!! Cancel the update of Class {}".format(CLASS))
     ''' Print out the current iteration'''
     if len(sys.argv) > 1:
         # We will send a parameter "retrain", which means the global model is in retraining phase
@@ -242,7 +259,7 @@ def main():
     acc = MNIST.accuracy(y_true=test_label, y_pred=y_pred)
     print("Accuracy:{:.4f}".format(acc))
 
-    with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_lr.csv'), 'a') as f:
+    with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_lr_smallbatch.csv'), 'a') as f:
         if len(sys.argv) == 1:
             f.write('\n')
         f.write(str(acc)+',')
