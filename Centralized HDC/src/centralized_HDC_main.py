@@ -22,7 +22,7 @@ def main():
     test_label_path = "../../MNIST/data_csv/test_label.csv"
     # Read training data
     train_data = pd.read_csv(train_data_path)
-    x = np.asarray(train_data, dtype=np.float)
+    x = np.asarray(train_data.iloc[:, 1:], dtype=np.float)
 
     # Read training label
     train_label = pd.read_csv(train_label_path)
