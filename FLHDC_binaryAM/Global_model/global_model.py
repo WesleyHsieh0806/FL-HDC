@@ -213,15 +213,15 @@ def main():
             # Save the number of flipped bit into dictionary
             flipped_bit[CLASS] = number_of_flipped_bit
 
-            '''
-            * To prevent the # of flipped bit explodes, we cancel the update of integerAM and binaryAM
-            * once the # of flipped bit exceeds 1000
-            '''
-            if number_of_flipped_bit > 500:
-                Prototype_vector['binary'][CLASS] = last_vector
-                Prototype_vector['integer'][CLASS] = last_global_model['Prototype_vector']['integer'][CLASS]
-                print(
-                    "Flipped bit explodes!!! Cancel the update of Class {}".format(CLASS))
+            # '''
+            # * To prevent the # of flipped bit explodes, we cancel the update of integerAM and binaryAM
+            # * once the # of flipped bit exceeds 1000
+            # '''
+            # if number_of_flipped_bit > 500:
+            #     Prototype_vector['binary'][CLASS] = last_vector
+            #     Prototype_vector['integer'][CLASS] = last_global_model['Prototype_vector']['integer'][CLASS]
+            #     print(
+            #         "Flipped bit explodes!!! Cancel the update of Class {}".format(CLASS))
     ''' Print out the current iteration'''
     if len(sys.argv) > 1:
         # We will send a parameter "retrain", which means the global model is in retraining phase
