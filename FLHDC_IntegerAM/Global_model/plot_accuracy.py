@@ -5,6 +5,7 @@ import pandas as pd
 '''
 * Plot the accuracy of each parameter setup
 '''
+# FL SecureHD
 Dir = os.path.dirname(__file__)
 for K in [100]:
     for dim in [10000]:
@@ -15,7 +16,7 @@ for K in [100]:
                 accuracy = np.array(line.strip().strip(
                     ',').split(','), dtype=float)
 
-# FL with K=100
+# FL with K=100(One-shot)
 FL_df = pd.read_csv(os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'FLHDC', 'Global_model', 'Avg_accuracy.csv'))
 FL = np.array(FL_df.iloc[3, 1:])

@@ -35,8 +35,6 @@ def load_data(client_number):
     # the path of data(by label) for the client
     train_data_path = os.path.join(client_path, 'train_data.csv')
     train_label_path = os.path.join(client_path, 'train_label.csv')
-    test_data_path = os.path.join(client_path, 'test_data.csv')
-    test_label_path = os.path.join(client_path, 'test_label.csv')
 
     # load the csv file and transfer them into numpy array
     train_data = pd.read_csv(train_data_path)
@@ -45,18 +43,9 @@ def load_data(client_number):
     train_label = pd.read_csv(train_label_path)
     train_label = np.asarray(train_label.iloc[:, 1:])
 
-    test_data = pd.read_csv(test_data_path)
-    test_data = np.asarray(test_data.iloc[:, 1:])
-
-    test_label = pd.read_csv(test_label_path)
-    test_label = np.asarray(test_label.iloc[:, 1:])
-
     # check the size of each dataset
     print("Size of training data:{}".format(train_data.shape))
-    # print("Size of training label:{}".format(train_label.shape))
-    print("Size of testing data:{}".format(test_data.shape))
-    # print("Size of testing label:{}".format(test_label.shape))
-    return train_data, train_label, test_data, test_label
+    return train_data, train_label
 
 
 def client_training(client_number, dimension, level, Nof_feature,
@@ -65,7 +54,7 @@ def client_training(client_number, dimension, level, Nof_feature,
     * Train HDC model for each client and save the AM and Size of Local 
     * Dataset as "Upload.pickle" for Gloabl model
     '''
-    train_data, train_label, test_data, test_label = load_data(client_number)
+    train_data, train_label = load_data(client_number)
 
     # Train and Retrain the Model
     MNIST = HDC.HDC(dim=dimension, nof_class=nof_class,

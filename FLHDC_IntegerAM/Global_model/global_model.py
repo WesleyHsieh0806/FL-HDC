@@ -78,11 +78,9 @@ def main():
         # As a result, we have to binarize them (>0 --> 1   <0 --> -1)
         # Special case: if an element is 0, then randomly change it into 1 or -1
         Prototype_vector['binary'][CLASS][Prototype_vector['binary'][CLASS]
-                                          > 0] = 1
+                                          >= 0] = 1
         Prototype_vector['binary'][CLASS][Prototype_vector['binary'][CLASS]
                                           < 0] = -1
-        Prototype_vector['binary'][CLASS][Prototype_vector['binary'][CLASS] == 0] = np.random.choice(
-            [1, -1], size=np.count_nonzero(Prototype_vector['binary'][CLASS] == 0))
 
     ''' 
     * In retraining phase, the integerAM should be updated as the following fomula:

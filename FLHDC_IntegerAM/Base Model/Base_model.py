@@ -6,41 +6,29 @@ import os
 import argparse
 
 
-def partition_initial_client(train_data, train_label, test_data, test_label):
+def partition_initial_client(train_data, train_label):
     '''partition the dataset into two parts: 1.initial data for global model 2.client dataset'''
     # initial train dataset(initial_train_data): 2400 images, 240images for each label
     # client train dataset(train_data): 57600
-    # initial test dataset: 400 images, 40images for each label
-    # client test dataset: 9600
+
     for label in range(10):
         # train:for each label, randomly select 240 images and append it to the initial_train dataset
-        # test: for each label, randomly select 40 images and append it to the intial_test dataset
         # replace:False --> Will not place the element(which has been selected)back to the array
         select_index = np.random.choice(
             np.where(train_label.flatten() == label)[0], size=240, replace=False)
-        test_select_index = np.random.choice(
-            np.where(test_label.flatten() == label)[0], size=40, replace=False)
         if label == 0:
             initial_train_data = train_data[select_index]
             initial_train_label = train_label[select_index]
-            initial_test_data = test_data[test_select_index]
-            initial_test_label = test_label[test_select_index]
         else:
             # append the data by np.concatenate
             initial_train_data = np.concatenate((
                 initial_train_data, train_data[select_index]), axis=0)
             initial_train_label = np.concatenate(
                 (initial_train_label, train_label[select_index]), axis=0)
-            initial_test_data = np.concatenate((
-                initial_test_data, test_data[test_select_index]), axis=0)
-            initial_test_label = np.concatenate(
-                (initial_test_label, test_label[test_select_index]), axis=0)
         # delete the selected data from client_dataset
         train_data = np.delete(train_data, select_index, axis=0)
         train_label = np.delete(train_label, select_index, axis=0)
-        test_data = np.delete(test_data, test_select_index, axis=0)
-        test_label = np.delete(test_label, test_select_index, axis=0)
-    return train_data, train_label, test_data, test_label, initial_train_data, initial_train_label, initial_test_data, initial_test_label
+    return train_data, train_label,  initial_train_data, initial_train_label
 
 
 def main():
@@ -115,8 +103,8 @@ def main():
     '''
     # @sort_XXX: dataset for clients
     # @initial_XXX: dataset for initialization
-    sort_train_data, sort_train_label, sort_test_data, sort_test_label, initial_train_data, initial_train_label, initial_test_data, initial_test_label = partition_initial_client(
-        sort_train_data, sort_train_label, sort_test_data, sort_test_label)
+    sort_train_data, sort_train_label, initial_train_data, initial_train_label = partition_initial_client(
+        sort_train_data, sort_train_label)
 
     '''
     * Parameter setup
@@ -164,15 +152,6 @@ def main():
     initial_train_label_df.to_csv(os.path.join(
         os.path.dirname(__file__), 'initial_train_label.csv'))
 
-    initial_test_data_df = pd.DataFrame(initial_test_data, columns=[
-        'feature'+str(i) for i in range(1, len(initial_train_data[0])+1)])
-    initial_test_data_df.to_csv(os.path.join(
-        os.path.dirname(__file__), 'initial_test_data.csv'))
-
-    initial_test_label_df = pd.DataFrame(initial_test_label, columns=[
-                                         'Label'])
-    initial_test_label_df.to_csv(os.path.join(
-        os.path.dirname(__file__), 'initial_test_label.csv'))
     '''
     * Partition client data into 2K shards.
     * Each client will have 2 shards of data-> Non IID balanced
@@ -221,51 +200,6 @@ def main():
         client_label_df = pd.DataFrame(client_label, columns=['Label'])
         client_label_df.to_csv(os.path.join(
             os.path.dirname(os.path.dirname(__file__)), 'client'+str(client), 'train_label.csv'))
-        print("Complete!")
-
-    ''' test_data_part'''
-    # @nof_shards: how many shards of data should the total dataset be partitioned to
-    # @size_of_shard: size of data in each shards
-    nof_shards = 2*Base_model['K']
-    if sort_test_data.shape[0]/nof_shards != int(sort_test_data.shape[0]/nof_shards):
-        print("Unbalanced Test dataset! Please Modify K(# of clients) if balanced dataset is demanded.")
-    size_of_shard = int(sort_test_data.shape[0]//nof_shards)
-    shard_index = np.array([i for i in range(nof_shards)], dtype=int)
-
-    for client in range(1, Base_model['K']+1):
-        # For each client, random sample two shards of data from the total dataset
-        # That is, randomly select two index and delete them from the index list.
-        # data_index: selected index for client
-        # shard_index: total index list
-        data_index = [-1, -1]
-        data_index[0] = int(np.random.choice(shard_index, size=1))
-        shard_index = np.delete(shard_index, np.where(
-            shard_index == data_index[0]))
-        data_index[1] = int(np.random.choice(shard_index, size=1))
-        shard_index = np.delete(shard_index, np.where(
-            shard_index == data_index[1]))
-
-        ''' Partition the data and save them as csv file in each client directory'''
-        # the range of client_data lies between data_index*size_of shard and (data_index+1) * (size of shard)
-        client_test_data = sort_test_data[data_index[0] *
-                                          size_of_shard: (data_index[0]+1)*size_of_shard]
-        client_test_label = sort_test_label[data_index[0] *
-                                            size_of_shard: (data_index[0]+1)*size_of_shard]
-        client_test_data = np.concatenate((client_test_data, sort_test_data[data_index[1] *
-                                                                            size_of_shard: (data_index[1] + 1)*size_of_shard]), axis=0)
-        client_test_label = np.concatenate((client_test_label, sort_test_label[data_index[1] *
-                                                                               size_of_shard: (data_index[1] + 1)*size_of_shard]), axis=0)
-
-        # save the data as csv files
-        print("Save testing csv files for client"+str(client)+"...", end=' ')
-        client_test_data_df = pd.DataFrame(
-            client_test_data, columns=['feature'+str(i) for i in range(1, Base_model['Nof_feature'] + 1)])
-        client_test_data_df.to_csv(os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), 'client'+str(client), 'test_data.csv'))
-        client_test_label_df = pd.DataFrame(
-            client_test_label, columns=['Label'])
-        client_test_label_df.to_csv(os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), 'client'+str(client), 'test_label.csv'))
         print("Complete!")
 
 

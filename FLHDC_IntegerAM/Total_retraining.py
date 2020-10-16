@@ -7,17 +7,12 @@ import os
 
 def main():
     average_time = 1
-    retrain_update_time = 2
+    retrain_update_time = 30
     for i in range(average_time):
-        for K in [100]:
+        for K in [20]:
             for dim in [10000]:
                 os.system("python \"Base Model/Base_model.py\" -K " +
                           str(K)+" -D "+str(dim))
-                # # Windows10
-                # # os.chdir(os.path.dirname(os.path.abspath(__file__)))
-                # # Ubuntu
-                # # os.chdir(os.path.dirname(
-                # #     os.path.dirname(os.path.abspath(__file__))))
                 os.system("python client_training.py")
                 os.system("python ./Global_model/global_model.py")
                 for retrain_epoch in range(retrain_update_time):
