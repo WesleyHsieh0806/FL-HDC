@@ -7,10 +7,10 @@ import os
 
 def main():
     average_time = 1
-    retrain_update_time = 30
+    retrain_update_time = 5
     for i in range(average_time):
         for K in [20]:
-            for dim in [10000]:
+            for dim in [1000, 2000, 5000, 10000]:
                 os.system("python \"Base Model/Base_model.py\" -K " +
                           str(K)+" -D "+str(dim))
                 os.system("python client_training.py")

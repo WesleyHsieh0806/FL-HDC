@@ -34,13 +34,13 @@ def partition_initial_client(train_data, train_label):
 def main():
     # the path of sorted data(by label) csv files
     sort_train_data_path = os.path.join(os.path.dirname(
-        __file__), '../../UNICHAR/sorted_data_csv/train_data.csv')
+        __file__), '../../UCIHAR/sorted_data_csv/train_data.csv')
     sort_train_label_path = os.path.join(os.path.dirname(
-        __file__), '../../UNICHAR/sorted_data_csv/train_label.csv')
+        __file__), '../../UCIHAR/sorted_data_csv/train_label.csv')
     sort_test_data_path = os.path.join(os.path.dirname(
-        __file__), '../../UNICHAR/sorted_data_csv/test_data.csv')
+        __file__), '../../UCIHAR/sorted_data_csv/test_data.csv')
     sort_test_label_path = os.path.join(os.path.dirname(
-        __file__), '../../UNICHAR/sorted_data_csv/test_label.csv')
+        __file__), '../../UCIHAR/sorted_data_csv/test_label.csv')
 
     # load the csv file and transfer them into numpy array
     sort_train_data = pd.read_csv(sort_train_data_path)

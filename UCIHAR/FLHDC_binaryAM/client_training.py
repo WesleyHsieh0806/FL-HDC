@@ -58,17 +58,17 @@ def client_training(client_number, dimension, level, Nof_feature,
     train_data, train_label = load_data(client_number)
 
     # Train and Retrain the Model
-    UNICHAR = HDC.HDC(dim=dimension, nof_class=nof_class,
-                      nof_feature=Nof_feature, level=level, PCA_projection=PCA_Projection, binaryAM=binaryAM)
-    UNICHAR.train(train_data, train_label,
-                  IM_vector=IM_vector, CIM_vector=CIM_vector, maximum=maximum, minimum=minimum)
+    UCIHAR = HDC.HDC(dim=dimension, nof_class=nof_class,
+                     nof_feature=Nof_feature, level=level, PCA_projection=PCA_Projection, binaryAM=binaryAM)
+    UCIHAR.train(train_data, train_label,
+                 IM_vector=IM_vector, CIM_vector=CIM_vector, maximum=maximum, minimum=minimum)
 
     # Save the AM and Size of local Dataset as pickle file
     Upload_to_Server = {}
     for label in range(1, nof_class+1):
         Upload_to_Server['Size' +
                          str(label)] = np.count_nonzero(train_label == label)
-    Upload_to_Server['AM'] = UNICHAR.Prototype_vector
+    Upload_to_Server['AM'] = UCIHAR.Prototype_vector
     with open(os.path.join(os.path.join(os.path.dirname(
             __file__), 'client'+str(client_number)), 'Upload.pickle'), 'wb') as f:
         pickle.dump(Upload_to_Server, f)

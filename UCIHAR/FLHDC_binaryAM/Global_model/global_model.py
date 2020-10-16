@@ -67,9 +67,9 @@ def LR_Decider(flipped_bit, learning_rate, number_of_class):
 def load_data():
     '''Load test dataset '''
     sort_test_data_path = os.path.join(os.path.dirname(
-        __file__), '../../UNICHAR/sorted_data_csv/test_data.csv')
+        __file__), '../../UCIHAR/sorted_data_csv/test_data.csv')
     sort_test_label_path = os.path.join(os.path.dirname(
-        __file__), '../../UNICHAR/sorted_data_csv/test_label.csv')
+        __file__), '../../UCIHAR/sorted_data_csv/test_label.csv')
 
     # load the csv file and transfer them into numpy array
     sort_test_data = pd.read_csv(sort_test_data_path)
@@ -234,12 +234,12 @@ def main():
         pickle.dump(global_model_dict, f)
 
     ''' Use Global model to report test-set accuracy'''
-    UNICHAR = HDC.HDC(dimension, nof_class, Nof_feature, level)
-    UNICHAR.load_model(os.path.join(file_dir, 'global_model_dict.pickle'))
+    UCIHAR = HDC.HDC(dimension, nof_class, Nof_feature, level)
+    UCIHAR.load_model(os.path.join(file_dir, 'global_model_dict.pickle'))
     ''' load test dataset'''
     test_data, test_label = load_data()
-    y_pred = UNICHAR.test(test_x=test_data)
-    acc = UNICHAR.accuracy(y_true=test_label, y_pred=y_pred)
+    y_pred = UCIHAR.test(test_x=test_data)
+    acc = UCIHAR.accuracy(y_true=test_label, y_pred=y_pred)
     print("Accuracy:{:.4f}".format(acc))
 
     with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_lr.csv'), 'a') as f:
