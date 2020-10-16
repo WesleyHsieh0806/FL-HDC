@@ -30,7 +30,7 @@ Much the same as client_training.py, except that client_retraining.py will parti
 
 ## global_model.py:
 This file will do weighted addition to acquire the AM of global model like the formula below:
-**$$ C_k = Σ^{K}_{j=1}n_j * C_{kj} $$**
+**$$ C_k = C_k + Σ^K_{j=1} lr_k * (R_{addjk} * Times_{addjk} + R_{subjk} * Times_{subjk})  $$**
 $$ K= number\ of\ clients$$
 $$ j = client\ index$$
 Then, the global model will return the test-set accuracy.
