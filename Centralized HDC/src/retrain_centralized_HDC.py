@@ -107,7 +107,7 @@ def main():
                 str(dimension)+'.csv'))
             # Save retrain execution time into csv files
             TTime = pd.DataFrame(np.array(Time[str(dimension)+'time']),
-                                 columns=[i+1 for i in range(len(result['dim'+str(dimension)][0]))])
+                                 columns=[i+1 for i in range(len(Time[str(dimension)+'time'][0]))])
             TTime.to_csv(os.path.join(os.path.dirname(
                 __file__), '../Result/retrain_60000+10000/retraining_time' +
                 str(dimension)+'.csv'))
