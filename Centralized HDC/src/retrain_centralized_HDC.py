@@ -91,7 +91,7 @@ def main():
             # Retrain
             print("{:=^40}".format("Start Retraining"))
             _, acc_history, time_history = MNIST.retrain(
-                test_x[:], test_y[:], x[:], y[:], num_epoch=30, train_acc_demand=0.85, batch_size=len(x)//3, save_path='HDC_model.pickle')
+                test_x[:], test_y[:], x[:], y[:], num_epoch=10, train_acc_demand=0.85, batch_size=len(x)//5, save_path='HDC_model.pickle')
             # add one-shot accuracy to the front of acc_history
             acc_history.insert(0, acc)
 
