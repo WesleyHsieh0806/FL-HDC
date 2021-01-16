@@ -297,10 +297,10 @@ class HDC:
                 print("Test accuracy:{:.4f}".format(acc))
                 print("Last accuracy:{:.4f}".format(
                     last_acc))
-            # Record the accuracy of each epoch in acc_history
-            acc_history.append(acc)
-            # Record the execution of each epoch in time_history
-            time_history.append(execution_time)
+                # Record the accuracy of each epoch in acc_history
+                acc_history.append(acc)
+                # Record the execution of each epoch in time_history
+                time_history.append(execution_time)
 
         print("\nRetrain Complete! Best accuracy:{:.4f}".format(best_acc))
         return best_acc, acc_history, time_history

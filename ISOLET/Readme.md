@@ -2,8 +2,8 @@
 one-shot Federated HDC
 # FLHDC_Integer AM:
 Federated HDC with retrained updates and IntegerAM  
-# FLHDC_binaryAM:
-Federated HDC with retrained updates and BinaryAM 
+# FLHDC_binaryAM_new:
+Federated HDC with retrained updates and BinaryAM (Final Version)
 # Centralized HDC:
 One-shot and Retrained HDC trained by centralized dataset.
 # data preprocess src:

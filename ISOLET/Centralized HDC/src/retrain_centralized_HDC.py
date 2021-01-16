@@ -59,7 +59,7 @@ def main():
     level = 21
     n_of_feature = len(x[0])
     # the result of each parameter setup is the average of 5 times
-    average_time = 1
+    average_time = 30
     result = {}
     Time = {}
     for dimension in Dimension:
@@ -91,7 +91,7 @@ def main():
             # Retrain
             print("{:=^40}".format("Start Retraining"))
             _, acc_history, time_history = ISOLET.retrain(
-                test_x[:], test_y[:], x[:], y[:], num_epoch=30, train_acc_demand=0.85, batch_size=len(x)//3, save_path='HDC_model.pickle')
+                test_x[:], test_y[:], x[:], y[:], num_epoch=50, train_acc_demand=0.85, batch_size=len(x)//3, save_path='HDC_model.pickle')
             # insert the one-shot accuracy to the front of acc_history
             acc_history.insert(0, acc)
 
@@ -107,7 +107,7 @@ def main():
                 str(dimension)+'.csv'))
             # Save retrain execution time into csv files
             TTime = pd.DataFrame(np.array(Time[str(dimension)+'time']),
-                                 columns=[i+1 for i in range(len(result['dim'+str(dimension)][0]))])
+                                 columns=[i+1 for i in range(len(Time[str(dimension)+'time'][0]))])
             TTime.to_csv(os.path.join(os.path.dirname(
                 __file__), '../Result/binary_retrain_60000+10000/retraining_time' +
                 str(dimension)+'.csv'))

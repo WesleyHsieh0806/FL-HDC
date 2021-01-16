@@ -12,12 +12,12 @@ import copy
 '''
 
 
-def new_lr(larger, equal, current_lr):
+def new_lr(larger, equal, current_lr, lr_max):
     ''' Modify the learning rate according to the relationship between # of flipped bit and 10
     @ Return: the value of the next learning rate
     '''
     new_lr = 0
-    lr_list = list(range(1, 6))
+    lr_list = list(range(1, lr_max+1))
     if larger:
         # Increase the lr to the one-level larger one
         level = lr_list.index(current_lr)
@@ -37,7 +37,7 @@ def new_lr(larger, equal, current_lr):
     return new_lr
 
 
-def LR_Decider(flipped_bit, learning_rate, number_of_class):
+def LR_Decider(flipped_bit, learning_rate, number_of_class, lr_max):
     ''' Adjust the learning rate by # of flipped bit last time
     * the learning rate will lie in these given values [1, 2, 3, 4, 5] 
     * The intution here is to maintain the # of flipped bit to be around 10
@@ -51,17 +51,17 @@ def LR_Decider(flipped_bit, learning_rate, number_of_class):
             lr_larger = False
             equal = False
             learning_rate[Class] = new_lr(
-                lr_larger, equal, learning_rate[Class])
+                lr_larger, equal, learning_rate[Class], lr_max)
         elif flipped_bit[Class] == 10:
             lr_larger = False
             equal = True
             learning_rate[Class] = new_lr(
-                lr_larger, equal, learning_rate[Class])
+                lr_larger, equal, learning_rate[Class], lr_max)
         else:
             lr_larger = True
             equal = False
             learning_rate[Class] = new_lr(
-                lr_larger, equal, learning_rate[Class])
+                lr_larger, equal, learning_rate[Class], lr_max)
     return learning_rate
 
 
@@ -111,7 +111,7 @@ def main():
     Prototype_vector['binary'] = {}
     Prototype_vector['integer'] = {}
     # case1: training
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 2:
         # Weighted Average the class hypervector by local data size
         for client in range(1, nof_clients+1):
             with open(os.path.join(os.path.join(os.path.join(os.path.dirname(__file__), '..'), 'client'+str(client)), 'Upload.pickle'), 'rb') as f:
@@ -162,12 +162,12 @@ def main():
             with open(os.path.join(file_dir, 'learning_rate.pickle'), 'rb') as f:
                 learning_rate = pickle.load(f)
             learning_rate = LR_Decider(
-                flipped_bit, learning_rate, number_of_class=nof_class)
+                flipped_bit, learning_rate, number_of_class=nof_class, lr_max=int(sys.argv[1]))
         else:
             # If we don't have the record last time, just assign the learning rate to be the largest level
             learning_rate = {}
             for Class in range(nof_class):
-                learning_rate[Class] = 5
+                learning_rate[Class] = int(sys.argv[1])
 
         # We have sent an argument "retrain_epoch" into global_model.py to differentiate it from training process
         for client in range(1, nof_clients+1):
@@ -212,7 +212,7 @@ def main():
         # After Retraining, the binary Prototype vector should be updated()
         # As a result, we have to binarize them (>0 --> 1   <0 --> -1)
         # Special case: if an element is 0, then randomly change it into 1 or -1
-        if len(sys.argv) != 1:
+        if len(sys.argv) != 2:
             last_vector = Prototype_vector['binary'][CLASS]
 
         Prototype_vector['binary'][CLASS] = np.zeros(
@@ -224,7 +224,7 @@ def main():
         print("# of 0:", np.count_nonzero(
             Prototype_vector['integer'][CLASS] == 0))
         # print out the number of flipped bit
-        if len(sys.argv) != 1:
+        if len(sys.argv) != 2:
             number_of_flipped_bit = np.count_nonzero(
                 Prototype_vector['binary'][CLASS] != last_vector)
             print("Flipped bit:", number_of_flipped_bit)
@@ -242,9 +242,9 @@ def main():
             #     print(
             #         "Flipped bit explodes!!! Cancel the update of Class {}".format(CLASS))
     ''' Print out the current iteration'''
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 2:
         # We will send a parameter "retrain", which means the global model is in retraining phase
-        print("Retrain Epoch:{}".format(sys.argv[1]))
+        print("Retrain Epoch:{}".format(sys.argv[2]))
         print("Save the Flipped bit and Learning rate...")
         ''' Save the learning rate and flipped bit into pickle files'''
         with open(os.path.join(file_dir, 'flipped_bit.pickle'), 'wb') as f:
@@ -278,10 +278,17 @@ def main():
     acc = MNIST.accuracy(y_true=test_label, y_pred=y_pred)
     print("Accuracy:{:.4f}".format(acc))
 
-    with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_lr_retraininit.csv'), 'a') as f:
-        if len(sys.argv) == 1:
-            f.write('\n')
-        f.write(str(acc)+',')
+    # Write the accuracy into csv
+    if int(sys.argv[1]) != 5:
+        with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_lr'+str(sys.argv[1])+'_retraininit.csv'), 'a') as f:
+            if len(sys.argv) == 2:
+                f.write('\n')
+            f.write(str(acc)+',')
+    else:
+        with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_lr'+'_retraininit.csv'), 'a') as f:
+            if len(sys.argv) == 2:
+                f.write('\n')
+            f.write(str(acc)+',')
 
 
 if __name__ == "__main__":

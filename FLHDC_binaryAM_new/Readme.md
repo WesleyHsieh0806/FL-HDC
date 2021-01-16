@@ -1,5 +1,5 @@
 # FLHDC_BinaryAM:
-The files in this directory are implementation of FLHDC with BinaryAM and Retraining Updates.
+The files in this directory are implementation of the Final Version of FLHDC with BinaryAM and Retraining Updates.
 # Description about the functionality of each file
 ## Usage:
 ```bash
