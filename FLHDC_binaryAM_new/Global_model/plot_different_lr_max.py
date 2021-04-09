@@ -1,7 +1,9 @@
+from matplotlib import rc
 import matplotlib.pyplot as plt
 import os
 import numpy as np
 import pandas as pd
+import matplotlib
 '''
 * Plot the accuracy of each parameter setup
 '''
@@ -57,17 +59,20 @@ with open(os.path.join(Dir, 'dim'+str(10000)+"_K"+str(20)+"_lr1_noretraininit.cs
 
 # Plot the epoch rounds vs Accuracy
 # Each line indicates different lr_max
+
+# activate latex text rendering
 x_dim = range(31)
+matplotlib.rcParams['font.style'] = 'italic'
 # for lr_max in [0]:
 #     plt.plot(x_dim,
 #              FLHDC_binary_dim10000_K20[lr_max], marker='o', linestyle='--', label="Nolr_No_retrainint")
 for lr_max in [1]:
     plt.plot(x_dim,
-             FLHDC_binary_dim10000_K20[lr_max], marker='o', linestyle='--', label="no learning rate")
+             FLHDC_binary_dim10000_K20[lr_max], marker='o', linestyle='--', label="lr=1 (constant)")
 
 for lr_max in [3, 5,  20]:
     plt.plot(x_dim,
-             FLHDC_binary_dim10000_K20[lr_max], marker='o', label="$lr_{max}$"+"={}".format(lr_max))
+             FLHDC_binary_dim10000_K20[lr_max], marker='o', label="$\it{lr}$"+"$\it_{max}$"+"={} (Adaptive)".format(lr_max))
 plt.legend()
 plt.xlabel("Retraining Rounds")
 plt.ylabel("Accuracy")

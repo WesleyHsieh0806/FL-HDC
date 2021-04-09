@@ -69,10 +69,10 @@ FLHDC_binary_IID = np.average(FLHDC_binary_IID, axis=0)
 # Plot the accuracy between Centralized HDC, SecureHD and FL BinaryHD
 x = [i for i in range(len(secureHD))]
 x_tick = [i for i in range(0, len(secureHD), 2)]
-y = [0.01*i for i in range(78, 92)]
+y = [0.01*i for i in range(81, 94)]
 print(secureHD[-1]-result[-1])
 
-plt.figure(figsize=(3.6, 4.0))
+plt.figure(figsize=(6.4, 4.8))
 plt.plot(x, result, color='r', marker='o', markersize=4, linewidth=2,
          label="FL-HDC")
 plt.plot(x, secureHD, color='yellowgreen', linewidth=2,
@@ -81,7 +81,7 @@ plt.plot(x, secureHD, color='yellowgreen', linewidth=2,
 #          label="Centralized-Binary")
 # plt.plot(x, FLHDC_binary_IID, color='b', marker='o', linewidth=3,
 #          label="Proposed -IID")
-plt.legend()
+plt.legend(loc='lower right')
 plt.xticks(x_tick)
 plt.yticks(y)
 plt.grid()
@@ -121,7 +121,7 @@ x_result = [cost_result[i]
 x_secureHD = [cost_secureHD[i]
               for i in [5,  10, 20, len(secureHD_full)-1]]
 x = x_result + x_secureHD
-y = [0.01 * i for i in range(78,  94)]
+y = [0.01 * i for i in range(81,  94)]
 
 # select partial points
 points_chosen_result = [i for i in [0, 5, 10, 13, 15, 20, 25, 30]]
@@ -134,7 +134,7 @@ secureHD_full = [secureHD_full[i] for i in points_chosen_SecureHD]
 cost_result = [cost_result[i] for i in points_chosen_result]
 cost_secureHD = [cost_secureHD[i] for i in points_chosen_SecureHD]
 
-plt.figure(figsize=(5.6, 5.6))
+plt.figure(figsize=(6.4, 4.8))
 plt.plot(cost_result, result, color='r',  linewidth=3, marker='o',
          label="Proposed FL-HDC")
 plt.plot(cost_secureHD, secureHD_full, color='yellowgreen',  marker='o', linewidth=3,
@@ -147,11 +147,11 @@ plt.hlines(0.88, cost_result[0], cost_secureHD[-1]+0.5,
 # plt.vlines(17.5, 0.78, 0.88, colors='yellowgreen',
 #            linestyles='--', linewidth=3)
 
-plt.legend(loc='lower left')
+plt.legend(loc='lower right')
 plt.xticks(x)
 plt.xlim(x[0], x[-1]+0.3)
 plt.yticks(y)
-plt.ylim(0.78, y[-1])
+plt.ylim(0.81, y[-1])
 plt.grid()
 plt.xlabel('Communication Cost(log)')
 plt.ylabel('Accuracy')
