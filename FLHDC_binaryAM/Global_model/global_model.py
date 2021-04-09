@@ -17,7 +17,7 @@ def new_lr(larger, equal, current_lr):
     @ Return: the value of the next learning rate
     '''
     new_lr = 0
-    lr_list = list(range(1, 6))
+    lr_list = list(range(1, 2))
     if larger:
         # Increase the lr to the one-level larger one
         level = lr_list.index(current_lr)
@@ -165,7 +165,7 @@ def main():
             # If we don't have the record last time, just assign the learning rate to be the largest level
             learning_rate = {}
             for Class in range(nof_class):
-                learning_rate[Class] = 5
+                learning_rate[Class] = 1
 
         # We have sent an argument "retrain_epoch" into global_model.py to differentiate it from training process
         for client in range(1, nof_clients+1):
@@ -259,7 +259,7 @@ def main():
     acc = MNIST.accuracy(y_true=test_label, y_pred=y_pred)
     print("Accuracy:{:.4f}".format(acc))
 
-    with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_lr_smallbatch.csv'), 'a') as f:
+    with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_nolr_noretraininit.csv'), 'a') as f:
         if len(sys.argv) == 1:
             f.write('\n')
         f.write(str(acc)+',')
