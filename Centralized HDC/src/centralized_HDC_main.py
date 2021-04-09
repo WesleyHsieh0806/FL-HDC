@@ -3,7 +3,7 @@ import os
 import time
 import numpy as np
 import pandas as pd
-import HDC_mulpc_ISOLET as HDC
+import HDC_Centralized as HDC
 np.random.seed(0)
 '''
 Author: Wesley Hsieh

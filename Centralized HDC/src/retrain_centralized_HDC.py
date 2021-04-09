@@ -54,12 +54,12 @@ def main():
     """
     '''# Parameter Setup'''
     # Dimension = [1000*i for i in range(1, 11)]
-    Dimension = [10000, 5000, 2000, 1000]
+    Dimension = [10000]
     n_of_class = 10
     level = 21
     n_of_feature = len(x[0])
     # the result of each parameter setup is the average of 5 times
-    average_time = 3
+    average_time = 50
     result = {}
     Time = {}
     for dimension in Dimension:
