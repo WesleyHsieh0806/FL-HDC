@@ -264,15 +264,15 @@ class HDC:
                     # self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS] == 0] = np.random.choice(
                     #     [1, -1], size=np.count_nonzero(self.Prototype_vector['integer'][CLASS] == 0))
                 ''' Print the training_accuracy for each batch'''
-                if self.PCA_projection:
-                    # We have to turn off the PCA_projection since train_x has already been projected
-                    self.PCA_projection = False
-                    train_y_pred = self.test(train_x)
-                    self.PCA_projection = True
-                else:
-                    train_y_pred = self.test(train_x)
-                train_acc = self.accuracy(y_true=train_y, y_pred=train_y_pred)
-                print("Training accuracy:{:.4f}".format(train_acc))
+                # if self.PCA_projection:
+                #     # We have to turn off the PCA_projection since train_x has already been projected
+                #     self.PCA_projection = False
+                #     train_y_pred = self.test(train_x)
+                #     self.PCA_projection = True
+                # else:
+                #     train_y_pred = self.test(train_x)
+                # train_acc = self.accuracy(y_true=train_y, y_pred=train_y_pred)
+                # print("Training accuracy:{:.4f}".format(train_acc))
 
                 '''Predict the test data'''
                 y_pred = self.test(test_x)
@@ -288,6 +288,95 @@ class HDC:
                 print("Test accuracy:{:.4f}".format(acc))
                 print("Last accuracy:{:.4f}".format(
                     last_acc))
+
+        print("\nRetrain Complete! Best accuracy:{:.4f}".format(best_acc))
+        return best_acc
+
+    def retrain_initial(self, test_x, test_y, train_x, train_y, num_epoch=5, train_acc_demand=0.85, batch_size=400, save_path='HDC_model.pickle'):
+        ''' 
+        Retrain the prototype vector(integer AM) with training data and stops after num_epoch
+        @train_acc_demand: the least accuracy which should be achieved before stop retraining
+        @batch_size : The number of data passed through between two prototype AM update
+        @save_path : the path where to save the model as pickle file
+        Return : best test accuracy achieved in retraining phase
+        '''
+        # train_x:(n,feature) train_y(n,1)
+        best_acc = 0.
+        last_acc = -1.
+        train_acc = 0.
+        acc = 0.
+        total_batch = ceil(len(train_x)/batch_size)
+        if self.PCA_projection:
+            # in retrain phase, we have to project the training data first if PCA was used in training
+            # testing data do not need to be projected here since self.test already do it for us
+            train_x = self.PCA_test(train_x)
+        for retrain_epoch in range(1, num_epoch+1):
+            '''If the test-set accuracy gets lower, then retrain stops'''
+            for batch in range(total_batch):
+                # batch retraining: Update binary AM and test-set accuracy for each batch
+                for data in range(batch_size):
+                    data_index = batch*batch_size + data
+                    if data_index < len(train_x):
+                        # there are still data which have not been passed encoded
+                        query_vector = np.zeros(
+                            (1, self.nof_dimension)).astype(int)
+                        print("-- Retrain Epoch{} --[{}/{}] Dimension:{} Level:{}".format(retrain_epoch, data_index+1,
+                                                                                          len(train_x), self.nof_dimension, self.level), end='\r')
+                        # Prediction
+                        predicted_class, query_vector = self.encoder_query_vector(
+                            train_x[data_index], query_vector, data_index, retrain=True)
+                        # if the data is wrongly predicted, subtract the mismatched prototype vector by query_vector
+                        if predicted_class != train_y[data_index][0]:
+                            # In this case : predicted_class = mismatched class
+                            # the real class is train_y[data]
+                            self.Prototype_vector['integer'][predicted_class] -= query_vector
+                            self.Prototype_vector['integer'][train_y[data_index][0]
+                                                             ] += query_vector
+
+                    else:
+                        # All data have been encoded
+                        break
+                print("\nUpdate Test-set accuracy...")
+                ''' Binarize Prototype Vector and update binary AM'''
+                for CLASS in range(0, self.nof_class):
+                    # After Retraining, the binary Prototype vector should be updated()
+                    # As a result, we have to binarize them (>0 --> 1   <0 --> -1)
+                    # Special case: if an element is 0, then randomly change it into 1 or -1
+                    self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS]
+                                                           > 0] = 1
+                    self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS]
+                                                           < 0] = -1
+                    '''
+                    * In NonIID setting, the zero elements should not be changed to 1 -1, since there are many classes
+                    * (which do not exist in the local dataset) vectors which have only zero elements
+                    '''
+                    # self.Prototype_vector['binary'][CLASS][self.Prototype_vector['integer'][CLASS] == 0] = np.random.choice(
+                    #     [1, -1], size=np.count_nonzero(self.Prototype_vector['integer'][CLASS] == 0))
+                # ''' Print the training_accuracy for each batch'''
+                # if self.PCA_projection:
+                #     # We have to turn off the PCA_projection since train_x has already been projected
+                #     self.PCA_projection = False
+                #     train_y_pred = self.test(train_x)
+                #     self.PCA_projection = True
+                # else:
+                #     train_y_pred = self.test(train_x)
+                # train_acc = self.accuracy(y_true=train_y, y_pred=train_y_pred)
+                # print("Training accuracy:{:.4f}".format(train_acc))
+
+                # '''Predict the test data'''
+                # y_pred = self.test(test_x)
+                # ''' Acquire the test-accuracy to see the results of retraining'''
+                # # Update accuracy
+                # last_acc = acc
+                # acc = self.accuracy(y_true=test_y, y_pred=y_pred)
+                # # Update drop time
+                # if acc > best_acc:
+                #     best_acc = acc
+                #     print("Currently best accuracy:{:.4f}".format(best_acc))
+                #     self.save_model(path=save_path)
+                # print("Test accuracy:{:.4f}".format(acc))
+                # print("Last accuracy:{:.4f}".format(
+                #     last_acc))
 
         print("\nRetrain Complete! Best accuracy:{:.4f}".format(best_acc))
         return best_acc

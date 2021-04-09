@@ -61,7 +61,8 @@ def client_training(client_number, dimension, level, Nof_feature,
                     nof_feature=Nof_feature, level=level, PCA_projection=PCA_Projection, binaryAM=binaryAM)
     MNIST.train(train_data, train_label,
                 IM_vector=IM_vector, CIM_vector=CIM_vector, maximum=maximum, minimum=minimum)
-
+    MNIST.retrain_initial(train_data, train_label, train_data,
+                          train_label, num_epoch=2, batch_size=len(train_data)//5)
     # Save the AM and Size of local Dataset as pickle file
     Upload_to_Server = {}
     Upload_to_Server['Size'] = len(train_data)
