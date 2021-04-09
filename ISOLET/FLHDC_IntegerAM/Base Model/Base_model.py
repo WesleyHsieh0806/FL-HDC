@@ -130,7 +130,7 @@ def main():
     Base_model['l'] = 21
     Base_model['Nof_feature'] = sort_train_data.shape[1]
     Base_model['PCA_Projection'] = False
-    Base_model['BinaryAM'] = False
+    Base_model['BinaryAM'] = True
     Base_model['L'] = 26
     Base_model['CIM'] = init_CIM_vector(Base_model['D'], Base_model['l'])
     Base_model['IM'] = init_IM_vector(

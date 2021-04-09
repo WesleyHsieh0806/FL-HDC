@@ -82,9 +82,9 @@ FLHDC_binary_IID = np.average(FLHDC_binary_IID, axis=0)[:len(result)]
 # Plot the accuracy between Centralized HDC, SecureHD and FL BinaryHD
 x = [i for i in range(len(secureHD))]
 x_tick = [i for i in range(0, len(secureHD), 2)]
-y = [0.01*i for i in range(78, 94)]
+y = [0.01*i for i in range(81, 94)]
 
-plt.figure(figsize=(3.6, 4.0))
+plt.figure(figsize=(6.4, 4.8))
 plt.plot(x, result, color='r', marker='o', markersize=4, linewidth=2,
          label="FL-HDC")
 plt.plot(x, secureHD, color='yellowgreen', linewidth=2,
@@ -93,7 +93,7 @@ plt.plot(x, secureHD, color='yellowgreen', linewidth=2,
 #          label="Centralized-Binary")
 # plt.plot(x, FLHDC_binary_IID, color='b', marker='o', markersize=4, linewidth=2,
 #          label="Proposed -IID")
-plt.legend()
+plt.legend(loc='lower right')
 plt.xticks(x_tick)
 plt.yticks(y)
 plt.grid()
@@ -147,13 +147,13 @@ secureHD = [secureHD_full[i] for i in points_chosen_SecureHD]
 cost_result = [cost_result[i] for i in points_chosen_result]
 cost_secureHD = [cost_secureHD[i] for i in points_chosen_SecureHD]
 
-plt.figure(figsize=(5.6, 5.6))
+plt.figure(figsize=(6.4, 4.8))
 plt.plot(cost_result, result, color='r', marker='o', linewidth=3,
          label="Proposed FL-HDC")
 plt.plot(cost_secureHD, secureHD, color='yellowgreen', marker='o', linewidth=3,
          linestyle='-', label='SecureHD[11]')
 
-plt.legend(loc='lower left')
+plt.legend(loc='lower right')
 plt.xticks(x)
 plt.xlim(x[0], x[-1]+0.3)
 plt.yticks(y)

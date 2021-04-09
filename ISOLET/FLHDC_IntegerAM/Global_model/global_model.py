@@ -86,7 +86,15 @@ def main():
         for label in range(1, nof_class+1):
             Prototype_vector['integer'][label] -= ((
                 nof_clients-1)*last_global_model['Prototype_vector']['integer'][label])
-
+    ''' Binarize to acquire binary AM'''
+    for CLASS in range(1, nof_class+1):
+        # After Retraining, the binary Prototype vector should be updated()
+        # As a result, we have to binarize them (>0 --> 1   <0 --> -1)
+        # Special case: if an element is 0, then randomly change it into 1 or -1
+        Prototype_vector['binary'][CLASS][Prototype_vector['integer'][CLASS]
+                                          >= 0] = 1
+        Prototype_vector['binary'][CLASS][Prototype_vector['integer'][CLASS]
+                                          < 0] = -1
     '''Save the global model parameters as pickle files'''
     global_model_dict = {}
     global_model_dict['nof_dimension'] = dimension
@@ -113,7 +121,7 @@ def main():
     acc = ISOLET.accuracy(y_true=test_label, y_pred=y_pred)
     print("Accuracy:{:.4f}".format(acc))
 
-    with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'.csv'), 'a') as f:
+    with open(os.path.join(file_dir, 'dim'+str(dimension)+"_K"+str(nof_clients)+'_bin.csv'), 'a') as f:
         if len(sys.argv) == 1:
             f.write('\n')
         f.write(str(acc)+',')

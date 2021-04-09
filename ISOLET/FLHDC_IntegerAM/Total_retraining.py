@@ -6,19 +6,19 @@ import os
 
 
 def main():
-    average_time = 1
-    retrain_update_time = 30
+    average_time = 10
+    retrain_update_time = 50
     for i in range(average_time):
         for K in [20]:
             for dim in [10000]:
-                os.system("python \"Base Model/Base_model.py\" -K " +
+                os.system("python3 \"Base Model/Base_model.py\" -K " +
                           str(K)+" -D "+str(dim))
-                os.system("python client_training.py")
-                os.system("python ./Global_model/global_model.py")
+                os.system("python3 client_training.py")
+                os.system("python3 ./Global_model/global_model.py")
                 for retrain_epoch in range(retrain_update_time):
-                    os.system("python client_retraining.py")
+                    os.system("python3 client_retraining.py")
                     os.system(
-                        "python ./Global_model/global_model.py {}".format(retrain_epoch+1))
+                        "python3 ./Global_model/global_model.py {}".format(retrain_epoch+1))
 
 
 if __name__ == "__main__":
