@@ -13,8 +13,8 @@ Federated learning (FL) is a privacy-preserving learning framework, which collab
 
 ## Requirements
 * python 3.7
-* torch 1.4.0
-* torchvision
+* matplotlib
+* scikit-learn
 * pandas
 * numpy
 
