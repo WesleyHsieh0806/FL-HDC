@@ -1,5 +1,5 @@
-pip install numpy --user
-pip install pandas --user
-pip install matplotlib --user
-pip install scikit-learn --user
+numpy
+pandas
+matplotlib
+sklearn
 
