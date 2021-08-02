@@ -17,7 +17,28 @@ Federated learning (FL) is a privacy-preserving learning framework, which collab
 * torchvision
 * pandas
 * numpy
-## File Description
+
+## Prepare Dataset
+* Download MNIST
+
+  ```bash
+  cd "data preprocess src"
+  python3 download_data.py
+  python3 sort_data.py
+  ```
+ * Download CIFAR10 and UCIHAR
+ 
+    ```bash
+    cd CIFAR(UCIHAR)
+    cd "data preprocess src"
+    python3 download_data.py
+    python3 sort_data.py
+    ```
+## Usage
+
+  Click into the Specific Directories and follow the instructions
+  
+## Directory Description
 * **[FLHDC:](./FLHDC)**
 
   one-shot Federated HDC
