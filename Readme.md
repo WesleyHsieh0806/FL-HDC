@@ -2,7 +2,7 @@
 This Code is the Official Python Implementation of [FL-HDC: Hyperdimensional Computing Design for the Application of Federated Learning](https://ieeexplore.ieee.org/document/9458526) (IEEE AICAS2021)
 
 <p align="center">
-  <img align="center"  src="./img/Framework.png" alt="FL-HDC" width="500"/>
+  <img align="center"  src="./img/Framework.png" alt="FL-HDC" width="400"/>
 </p>
 
 
