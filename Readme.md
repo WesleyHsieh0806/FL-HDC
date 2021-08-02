@@ -26,10 +26,10 @@ Federated learning (FL) is a privacy-preserving learning framework, which collab
   python3 download_data.py
   python3 sort_data.py
   ```
- * Download CIFAR10 and UCIHAR
+ * Download ISOLET and UCIHAR
  
     ```bash
-    cd CIFAR(UCIHAR)
+    cd ISOLET(UCIHAR)
     cd "data preprocess src"
     python3 download_data.py
     python3 sort_data.py
@@ -39,21 +39,12 @@ Federated learning (FL) is a privacy-preserving learning framework, which collab
   Click into the Specific Directories and follow the instructions
   
 ## Directory Description
-* **[FLHDC:](./FLHDC)**
+Dir | Description |
+|-------------------|-------------------|
+**[FLHDC:](./FLHDC)** | one-shot Federated HDC |
+**[FLHDC_Integer AM](./FLHDC_IntegerAM)** |   Federated HDC with retrained updates and IntegerAM   |
+**[FLHDC_binaryAM_new](./FLHDC_binaryAM_new)** | Published Version of FLHDC |
+**[Centralized HDC](./Centralized%20HDC)** | One-shot and Retrained HDC trained by centralized dataset. |
+**[data preprocess src](./data%20preprocess%20src)** | Download datasets and preprocess them into csv files  |
+**[MNIST](./MNIST)** |   Storage for preprocessed data csv   |
 
-  one-shot Federated HDC
-* **[FLHDC_Integer AM](./FLHDC_IntegerAM)**
-
-  Federated HDC with retrained updates and IntegerAM  
-* **[FLHDC_binaryAM_new](./FLHDC_binaryAM_new)**
-
-  Published Version of FLHDC
-* **[Centralized HDC](./Centralized%20HDC)**
-
-  One-shot and Retrained HDC trained by centralized dataset.
-* **[data preprocess src](./data%20preprocess%20src)**
-
-  Download datasets and preprocess them into csv files
-* **[MNIST](./MNIST)**
-
-  Storage for preprocessed data csv 
